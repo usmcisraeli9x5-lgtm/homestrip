@@ -832,8 +832,6 @@
                 email: 'supporter@homestrip.ng',
                 amount: price * 100,
                 currency: 'NGN',
-                subaccount: 'ACCT_HOMESTRIP',
-                bearer: 'subaccount',
                 callback: function(response){ 
                     alert((customNote || 'Payment') + ' successful! Ref: ' + response.reference);
                     if(postId) {
@@ -853,7 +851,6 @@
         if(localStorage.getItem('supabase_pub_key')) document.getElementById('supabase-key-input').value = localStorage.getItem('supabase_pub_key');
         if(localStorage.getItem('paystack_pub_key')) document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
         
-        // Restore last active tab on page load
         const lastTab = localStorage.getItem('last_active_tab') || 'feed';
         switchTab(lastTab);
     </script>
