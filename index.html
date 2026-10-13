@@ -24,7 +24,7 @@
         .logo span { color: var(--accent); }
         .badge-18 { background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-around; padding: 12px 0; z-index: 100; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
         .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-item.active { color: var(--primary); }
 
@@ -53,26 +53,12 @@
         .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 10px; }
 
-        #age-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; border-radius: 16px; text-align: center; max-width: 400px; width: 100%; }
-        .modal-content h2 { color: var(--primary); margin-bottom: 12px; font-size: 22px; }
-        .modal-content p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
-        .btn-agree { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: 700; cursor: pointer; }
-
         .profile-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
         .profile-bio { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
     </style>
 </head>
 <body>
-
-    <div id="age-modal">
-        <div class="modal-content">
-            <h2>18+ Age Verification</h2>
-            <p>Welcome to Home Strip. This platform contains adult content intended strictly for adults.</p>
-            <button class="btn-agree" onclick="verifyAge()">I am 18 or Older - Enter</button>
-        </div>
-    </div>
 
     <header>
         <div class="logo">HOME<span>STRIP</span></div>
@@ -101,4 +87,271 @@
         </div>
 
         <div id="studio-post-section" style="display: none;">
-            <div style="display:flex;
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <h2>Creator Studio</h2>
+                <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
+            </div>
+            <div class="form-group">
+                <label>Display Name</label>
+                <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
+            </div>
+            <div class="form-group">
+                <label>Post Caption</label>
+                <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your clip..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Unlock Price (₦)</label>
+                <input type="number" id="post-price" class="form-control" placeholder="2500">
+            </div>
+            <div class="form-group">
+                <label>Media Image URL</label>
+                <input type="text" id="post-media" class="form-control" placeholder="https://images.unsplash.com/...">
+            </div>
+            <button class="btn-primary" onclick="createPost()">Publish Content Live</button>
+        </div>
+    </div>
+
+    <div id="profile-view" class="view">
+        <div id="profile-header-container"></div>
+        <h3>Published Content</h3>
+        <div id="profile-posts-container" style="margin-top: 15px;"></div>
+    </div>
+
+    <div id="settings-view" class="view">
+        <h2 style="margin-bottom: 20px;">Platform Configuration</h2>
+        <div class="form-group">
+            <label>Supabase Publishable Key</label>
+            <input type="text" id="supabase-key-input" class="form-control" placeholder="sb_publishable_...">
+        </div>
+        <div class="form-group">
+            <label>Paystack Public Key</label>
+            <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
+        </div>
+        <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
+    </div>
+
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('feed')">
+            <span>🔥</span> Feed
+        </button>
+        <button class="nav-item" onclick="switchTab('studio')">
+            <span>🎥</span> Studio
+        </button>
+        <button class="nav-item" onclick="switchTab('settings')">
+            <span>⚙️</span> Settings
+        </button>
+    </nav>
+
+    <script>
+        const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
+        let supabaseClient = null;
+
+        function getSupabase() {
+            if (supabaseClient) return supabaseClient;
+            const key = localStorage.getItem('supabase_pub_key');
+            if (key) {
+                supabaseClient = supabase.createClient(SUPABASE_URL, key);
+            }
+            return supabaseClient;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(tab + '-view').classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            
+            if(tab === 'feed') renderFeed();
+            if(tab === 'studio') checkAuthStatus();
+        }
+
+        function saveSettings() {
+            const sbKey = document.getElementById('supabase-key-input').value;
+            const psKey = document.getElementById('paystack-key-input').value;
+            
+            if(sbKey) localStorage.setItem('supabase_pub_key', sbKey);
+            if(psKey) localStorage.setItem('paystack_pub_key', psKey);
+            
+            supabaseClient = null;
+            alert('Settings saved successfully!');
+            renderFeed();
+        }
+
+        async function signUpCreator() {
+            const client = getSupabase();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            if(!email || !password) return alert('Enter email and password');
+
+            const { data, error } = await client.auth.signUp({ email, password });
+            if(error) alert(error.message);
+            else {
+                alert('Account created! Logging you in...');
+                checkAuthStatus();
+            }
+        }
+
+        async function loginCreator() {
+            const client = getSupabase();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            if(!email || !password) return alert('Enter email and password');
+
+            const { data, error } = await client.auth.signInWithPassword({ email, password });
+            if(error) alert(error.message);
+            else checkAuthStatus();
+        }
+
+        async function logoutCreator() {
+            const client = getSupabase();
+            await client.auth.signOut();
+            checkAuthStatus();
+        }
+
+        async function checkAuthStatus() {
+            const client = getSupabase();
+            if(!client) return;
+
+            const { data: { session } } = await client.auth.getSession();
+            if(session) {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('studio-post-section').style.display = 'block';
+            } else {
+                document.getElementById('auth-section').style.display = 'block';
+                document.getElementById('studio-post-section').style.display = 'none';
+            }
+        }
+
+        async function renderFeed() {
+            const container = document.getElementById('posts-container');
+            const client = getSupabase();
+
+            if (!client) {
+                container.innerHTML = `<p style="text-align:center; padding:20px;">Configure key in Settings tab.</p>`;
+                return;
+            }
+
+            const { data: posts, error } = await client.from('posts').select('*').order('id', { ascending: false });
+            if (error || !posts) {
+                container.innerHTML = `<p style="text-align:center; padding:20px;">No posts available.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            posts.forEach(post => {
+                const initial = post.name ? post.name.charAt(0).toUpperCase() : 'C';
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header" style="cursor:pointer;" onclick="openProfile('${post.name}', '${post.handle}')">
+                        <div class="avatar">${initial}</div>
+                        <div class="creator-info">
+                            <h4>${post.name}</h4>
+                            <span>${post.handle}</span>
+                        </div>
+                    </div>
+                    <div class="media-container ${post.unlocked ? '' : 'locked'}">
+                        <img src="${post.media}" alt="Post Media">
+                        ${!post.unlocked ? `
+                            <div class="paywall-overlay">
+                                <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock Exclusive Content</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="post-caption">${post.caption}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function openProfile(name, handle) {
+            switchTab('profile');
+            const client = getSupabase();
+            const initial = name.charAt(0).toUpperCase();
+
+            document.getElementById('profile-header-container').innerHTML = `
+                <div class="profile-card">
+                    <div class="profile-avatar">${initial}</div>
+                    <h2>${name}</h2>
+                    <p style="color:var(--text-muted); font-size:14px;">${handle}</p>
+                    <p class="profile-bio">Verified Creator on Home Strip.</p>
+                </div>
+            `;
+
+            const { data: posts } = await client.from('posts').select('*').eq('name', name).order('id', { ascending: false });
+            const container = document.getElementById('profile-posts-container');
+            container.innerHTML = '';
+
+            if(!posts || posts.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts from this creator yet.</p>`;
+                return;
+            }
+
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="media-container ${post.unlocked ? '' : 'locked'}">
+                        <img src="${post.media}">
+                        ${!post.unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock</button></div>` : ''}
+                    </div>
+                    <div class="post-caption">${post.caption}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function createPost() {
+            const client = getSupabase();
+            const { data: { session } } = await client.auth.getSession();
+
+            const name = document.getElementById('creator-name').value || "Creator";
+            const caption = document.getElementById('post-caption-input').value;
+            const price = document.getElementById('post-price').value || 1000;
+            const media = document.getElementById('post-media').value || "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600";
+
+            if(!caption) return alert('Enter a caption');
+
+            const newPost = {
+                user_id: session ? session.user.id : null,
+                name: name,
+                handle: "@" + name.toLowerCase().replace(/\s+/g, ''),
+                caption: caption,
+                price: Number(price),
+                media: media,
+                unlocked: false
+            };
+
+            const { error } = await client.from('posts').insert([newPost]);
+
+            if (error) alert('Publishing failed: ' + error.message);
+            else {
+                alert('Published live!');
+                document.getElementById('post-caption-input').value = '';
+                switchTab('feed');
+            }
+        }
+
+        function payWithPaystack(price) {
+            const pubKey = localStorage.getItem('paystack_pub_key') || 'pk_live_e28e80eb3c55079272d529568d6';
+            let handler = PaystackPop.setup({
+                key: pubKey,
+                email: 'supporter@homestrip.ng',
+                amount: price * 100,
+                currency: 'NGN',
+                callback: function(response){ alert('Payment successful! Ref: ' + response.reference); },
+                onClose: function(){ alert('Canceled.'); }
+            });
+            handler.openIframe();
+        }
+
+        if(localStorage.getItem('supabase_pub_key')) document.getElementById('supabase-key-input').value = localStorage.getItem('supabase_pub_key');
+        if(localStorage.getItem('paystack_pub_key')) document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
+        renderFeed();
+    </script>
+</body>
+</html>
