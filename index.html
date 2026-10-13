@@ -45,10 +45,7 @@
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
         .media-container.locked img, .media-container.locked video { filter: blur(25px); transform: scale(1.1); pointer-events: none; }
         
-        /* Anti-Leak Watermark Overlay */
         .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: rgba(255,255,255,0.7); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.2); }
-        
-        /* FOMO Timer Badge */
         .fomo-badge { position: absolute; top: 12px; left: 12px; background: rgba(255, 0, 85, 0.9); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; z-index: 10; display: flex; align-items: center; gap: 4px; }
 
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; }
@@ -71,11 +68,15 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
         
-        /* Revenue Analytics Grid */
         .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .analytics-card { background: var(--card-bg); border: 1px solid var(--border); padding: 14px 10px; border-radius: 10px; text-align: center; }
         .analytics-card h4 { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
         .analytics-card p { font-size: 16px; font-weight: 800; color: var(--accent); }
+
+        .request-item { background: var(--bg-color); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; }
+        .request-item h5 { color: var(--accent); font-size: 13px; margin-bottom: 4px; }
+        .request-item p { font-size: 12px; color: var(--text-main); margin-bottom: 6px; }
+        .request-item span { font-size: 10px; color: var(--text-muted); }
 
         .upload-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
     </style>
@@ -96,6 +97,13 @@
         </div>
         <div id="posts-container" style="margin-top: 15px;">
             <p style="text-align: center; color: var(--text-muted); padding: 20px;">Loading global feed...</p>
+        </div>
+    </div>
+
+    <div id="unlocked-view" class="view">
+        <h2 style="margin-bottom: 15px;">My Unlocked Library 🔓</h2>
+        <div id="unlocked-posts-container">
+            <p style="text-align: center; color: var(--text-muted); padding: 20px;">Checking unlocked content...</p>
         </div>
     </div>
 
@@ -120,7 +128,7 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
             </div>
 
-            <!-- Creator Revenue Analytics Dashboard -->
+            <!-- Revenue Analytics Grid -->
             <div class="analytics-grid">
                 <div class="analytics-card">
                     <h4>Total Earned</h4>
@@ -133,6 +141,14 @@
                 <div class="analytics-card">
                     <h4>Tips</h4>
                     <p id="total-tips">0</p>
+                </div>
+            </div>
+
+            <!-- VIP Requests & Inbox Panel -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">VIP Requests Inbox 📩</h3>
+                <div id="requests-inbox-container">
+                    <p style="font-size: 12px; color: var(--text-muted);">No pending requests found.</p>
                 </div>
             </div>
 
@@ -194,7 +210,6 @@
                 <input type="number" id="post-price" class="form-control" placeholder="2500">
             </div>
 
-            <!-- Direct File Upload Field -->
             <div class="form-group">
                 <label>Upload Media (Image or Video from Device)</label>
                 <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
@@ -263,6 +278,9 @@
         <button class="nav-item active" onclick="switchTab('feed')">
             <span>🔥</span> Feed
         </button>
+        <button class="nav-item" onclick="switchTab('unlocked')">
+            <span>🔓</span> Unlocked
+        </button>
         <button class="nav-item" onclick="switchTab('studio')">
             <span>🎥</span> Studio
         </button>
@@ -277,6 +295,7 @@
         let activeCreatorForAction = null;
         let currentCategoryFilter = 'All';
         let cachedPosts = [];
+        let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
 
         function getSupabase() {
             if (supabaseClient) return supabaseClient;
@@ -295,6 +314,7 @@
             if(event && event.currentTarget) event.currentTarget.classList.add('active');
             
             if(tab === 'feed') renderFeed();
+            if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'studio') checkAuthStatus();
         }
 
@@ -352,6 +372,7 @@
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('studio-post-section').style.display = 'block';
                 loadAnalytics(session.user.id);
+                loadRequestsInbox(session.user.id);
             } else {
                 document.getElementById('auth-section').style.display = 'block';
                 document.getElementById('studio-post-section').style.display = 'none';
@@ -364,13 +385,37 @@
 
             const { data: posts } = await client.from('posts').select('*').eq('user_id', userId);
             if(posts) {
-                let unlocksCount = posts.filter(p => p.unlocked).length;
-                let totalRev = posts.reduce((sum, p) => p.unlocked ? sum + Number(p.price) : sum, 0);
+                let unlocksCount = posts.filter(p => unlockedPostIds.includes(p.id) || p.unlocked).length;
+                let totalRev = posts.reduce((sum, p) => (unlockedPostIds.includes(p.id) || p.unlocked) ? sum + Number(p.price) : sum, 0);
                 
                 document.getElementById('total-revenue').innerText = `₦${totalRev.toLocaleString()}`;
                 document.getElementById('total-unlocks').innerText = unlocksCount;
                 document.getElementById('total-tips').innerText = Math.floor(unlocksCount * 0.4);
             }
+        }
+
+        async function loadRequestsInbox(userId) {
+            const client = getSupabase();
+            const container = document.getElementById('requests-inbox-container');
+            if(!client) return;
+
+            const { data: requests, error } = await client.from('requests').select('*').order('id', { ascending: false });
+            if(error || !requests || requests.length === 0) {
+                container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No pending requests found.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            requests.forEach(req => {
+                const item = document.createElement('div');
+                item.className = 'request-item';
+                item.innerHTML = `
+                    <h5>Custom Request (₦${Number(req.amount || 5000).toLocaleString()})</h5>
+                    <p>"${req.message}"</p>
+                    <span>From Fan • Ref: ${req.reference || 'Paid'}</span>
+                `;
+                container.appendChild(item);
+            });
         }
 
         async function registerVerifiedBank() {
@@ -451,6 +496,7 @@
             }
 
             filtered.forEach(post => {
+                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
                 const initial = post.name ? post.name.charAt(0).toUpperCase() : 'C';
                 const card = document.createElement('div');
                 card.className = 'post-card';
@@ -462,16 +508,47 @@
                             <span>${post.handle} • <b style="color:var(--accent);">${post.category || 'Exclusive'}</b></span>
                         </div>
                     </div>
-                    <div class="media-container ${post.unlocked ? '' : 'locked'}">
+                    <div class="media-container ${isUnlocked ? '' : 'locked'}">
                         ${post.expiration && post.expiration > 0 ? `<div class="fomo-badge">⏳ Limited Drop (${post.expiration}h)</div>` : ''}
-                        ${renderMediaHTML(post.media, post.unlocked)}
+                        ${renderMediaHTML(post.media, isUnlocked)}
                         <div class="watermark">HOME STRIP • EXCLUSIVE</div>
-                        ${!post.unlocked ? `
+                        ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
-                                <button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock Exclusive Content</button>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock Exclusive Content</button>
                             </div>
                         ` : ''}
+                    </div>
+                    <div class="post-caption">${post.caption}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function renderUnlockedLibrary() {
+            const container = document.getElementById('unlocked-posts-container');
+            const client = getSupabase();
+
+            if(!client || unlockedPostIds.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">You have not unlocked any media yet.</p>`;
+                return;
+            }
+
+            const { data: posts } = await client.from('posts').select('*').in('id', unlockedPostIds);
+            container.innerHTML = '';
+
+            if(!posts || posts.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No unlocked content found.</p>`;
+                return;
+            }
+
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="media-container">
+                        ${renderMediaHTML(post.media, true)}
+                        <div class="watermark">HOME STRIP • UNLOCKED</div>
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -508,13 +585,14 @@
             }
 
             posts.forEach(post => {
+                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
-                    <div class="media-container ${post.unlocked ? '' : 'locked'}">
-                        ${renderMediaHTML(post.media, post.unlocked)}
+                    <div class="media-container ${isUnlocked ? '' : 'locked'}">
+                        ${renderMediaHTML(post.media, isUnlocked)}
                         <div class="watermark">HOME STRIP • EXCLUSIVE</div>
-                        ${!post.unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock</button></div>` : ''}
+                        ${!isUnlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -531,13 +609,24 @@
             payWithPaystack(amount, `Tip for ${activeCreatorForAction}`);
         }
 
-        function processPrivateChat() {
+        async function processPrivateChat() {
             const price = document.getElementById('chat-price').value || 5000;
             const message = document.getElementById('chat-message').value;
             if(!message) return alert('Please write a message for your request.');
             
             closeModal('chat-modal');
-            payWithPaystack(price, `Private Request for ${activeCreatorForAction}`);
+            
+            payWithPaystack(price, `Private Request for ${activeCreatorForAction}`, null, async (ref) => {
+                const client = getSupabase();
+                if(client) {
+                    await client.from('requests').insert([{
+                        creator_name: activeCreatorForAction,
+                        message: message,
+                        amount: price,
+                        reference: ref
+                    }]);
+                }
+            });
         }
 
         async function uploadFileToSupabase(file) {
@@ -612,14 +701,27 @@
             }
         }
 
-        function payWithPaystack(price, customNote) {
+        function payWithPaystack(price, customNote, postId = null, onCompleteCallback = null) {
             const pubKey = localStorage.getItem('paystack_pub_key') || 'pk_live_e28e80eb3c55079272d529568d6';
+            
             let handler = PaystackPop.setup({
                 key: pubKey,
                 email: 'supporter@homestrip.ng',
                 amount: price * 100,
                 currency: 'NGN',
-                callback: function(response){ alert((customNote || 'Payment') + ' successful! Ref: ' + response.reference); },
+                subaccount: 'ACCT_HOMESTRIP',
+                bearer: 'subaccount',
+                callback: function(response){ 
+                    alert((customNote || 'Payment') + ' successful! Ref: ' + response.reference);
+                    if(postId) {
+                        if(!unlockedPostIds.includes(postId)) {
+                            unlockedPostIds.push(postId);
+                            localStorage.setItem('unlocked_posts', JSON.stringify(unlockedPostIds));
+                        }
+                        renderFeed();
+                    }
+                    if(onCompleteCallback) onCompleteCallback(response.reference);
+                },
                 onClose: function(){ alert('Canceled.'); }
             });
             handler.openIframe();
