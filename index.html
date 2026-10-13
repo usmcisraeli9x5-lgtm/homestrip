@@ -78,7 +78,6 @@
         .request-item p { font-size: 12px; color: var(--text-main); margin-bottom: 6px; }
         .request-item span { font-size: 10px; color: var(--text-muted); }
 
-        /* Modern App Settings Styles */
         .settings-menu { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
         .settings-item { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; }
         .settings-item:last-child { border-bottom: none; }
@@ -90,7 +89,7 @@
 <body>
 
     <header>
-        <div class="logo">HOME<span>STRIP</span></div>
+        <div class="logo" onclick="checkAdminSecret()">HOME<span>STRIP</span></div>
         <div class="badge-18">18+ Only</div>
     </header>
 
@@ -113,7 +112,6 @@
         </div>
     </div>
 
-    <!-- Messages / Inbox View -->
     <div id="messages-view" class="view">
         <h2 style="margin-bottom: 15px;">My Messages & Requests 💬</h2>
         <div id="messages-container">
@@ -231,7 +229,7 @@
         </div>
     </div>
 
-    <!-- Modern App Settings View -->
+    <!-- Clean Consumer Settings View (Developer Section Hidden) -->
     <div id="settings-view" class="view">
         <h2 style="margin-bottom: 20px;">Settings & Support</h2>
         
@@ -254,17 +252,20 @@
             </div>
         </div>
 
-        <h3 style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px; margin-top: 25px;">Developer Configuration</h3>
-        <div class="settings-menu" style="padding: 16px;">
-            <div class="form-group">
-                <label>Supabase Publishable Key</label>
-                <input type="text" id="supabase-key-input" class="form-control" placeholder="sb_publishable_...">
+        <!-- Hidden Developer Panel (Unlocks only via secret trigger) -->
+        <div id="admin-dev-panel" style="display: none; margin-top: 25px;">
+            <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 10px;">🔒 Developer Configuration (Admin Only)</h3>
+            <div class="settings-menu" style="padding: 16px;">
+                <div class="form-group">
+                    <label>Supabase Publishable Key</label>
+                    <input type="text" id="supabase-key-input" class="form-control" placeholder="sb_publishable_...">
+                </div>
+                <div class="form-group">
+                    <label>Paystack Public Key</label>
+                    <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
+                </div>
+                <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
             </div>
-            <div class="form-group">
-                <label>Paystack Public Key</label>
-                <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
-            </div>
-            <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
         </div>
     </div>
 
@@ -332,6 +333,10 @@
 
     <script>
         const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
+        // Hardcoded fallback keys so regular users don't break the app if localStorage is empty
+        const DEFAULT_SB_KEY = "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
+        const DEFAULT_PS_KEY = "pk_live_e28e80eb3c55079272d529568d6946bf6";
+
         let supabaseClient = null;
         let activeCreatorForAction = null;
         let currentCategoryFilter = 'All';
@@ -341,10 +346,8 @@
 
         function getSupabase() {
             if (supabaseClient) return supabaseClient;
-            const key = localStorage.getItem('supabase_pub_key');
-            if (key) {
-                supabaseClient = supabase.createClient(SUPABASE_URL, key);
-            }
+            const key = localStorage.getItem('supabase_pub_key') || DEFAULT_SB_KEY;
+            supabaseClient = supabase.createClient(SUPABASE_URL, key);
             return supabaseClient;
         }
 
@@ -359,6 +362,23 @@
             if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'messages') renderMessagesInbox();
             if(tab === 'studio') checkAuthStatus();
+        }
+
+        // Secret Admin Trigger: Tap the app logo at the top 3 times quickly to reveal developer settings
+        let logoClicks = 0;
+        function checkAdminSecret() {
+            logoClicks++;
+            if(logoClicks >= 3) {
+                const pin = prompt("Enter Developer Admin PIN:");
+                if(pin === "7777") {
+                    document.getElementById('admin-dev-panel').style.display = 'block';
+                    alert("Developer Mode Unlocked!");
+                } else {
+                    alert("Incorrect PIN.");
+                }
+                logoClicks = 0;
+            }
+            setTimeout(() => { logoClicks = 0; }, 2000);
         }
 
         function saveSettings() {
@@ -550,7 +570,7 @@
             const client = getSupabase();
 
             if (!client) {
-                container.innerHTML = `<p style="text-align:center; padding:20px;">Configure key in Settings tab.</p>`;
+                container.innerHTML = `<p style="text-align:center; padding:20px;">Database connection error.</p>`;
                 return;
             }
 
@@ -788,7 +808,7 @@
         }
 
         function payWithPaystack(price, customNote, postId = null, onCompleteCallback = null) {
-            const pubKey = localStorage.getItem('paystack_pub_key') || 'pk_live_e28e80eb3c55079272d529568d6';
+            const pubKey = localStorage.getItem('paystack_pub_key') || DEFAULT_PS_KEY;
             
             let handler = PaystackPop.setup({
                 key: pubKey,
@@ -813,6 +833,7 @@
             handler.openIframe();
         }
 
+        // Preload key inputs if stored
         if(localStorage.getItem('supabase_pub_key')) document.getElementById('supabase-key-input').value = localStorage.getItem('supabase_pub_key');
         if(localStorage.getItem('paystack_pub_key')) document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
         renderFeed();
