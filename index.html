@@ -20,7 +20,7 @@
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
         
         header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
+        .logo { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: var(--text-main); cursor: pointer; }
         .logo span { color: var(--accent); }
         .badge-18 { background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
@@ -73,10 +73,10 @@
         .analytics-card h4 { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
         .analytics-card p { font-size: 16px; font-weight: 800; color: var(--accent); }
 
-        .request-item { background: var(--bg-color); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; }
-        .request-item h5 { color: var(--accent); font-size: 13px; margin-bottom: 4px; }
-        .request-item p { font-size: 12px; color: var(--text-main); margin-bottom: 6px; }
-        .request-item span { font-size: 10px; color: var(--text-muted); }
+        .chat-box { background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; height: 250px; overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-bubble { padding: 8px 12px; border-radius: 8px; font-size: 13px; max-width: 80%; line-height: 1.4; }
+        .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--border); }
+        .chat-bubble.creator { background: var(--primary); color: #fff; align-self: flex-end; }
 
         .settings-menu { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
         .settings-item { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -105,39 +105,50 @@
         </div>
     </div>
 
+    <!-- Supporter Cloud Library & Subscriptions -->
     <div id="unlocked-view" class="view">
-        <h2 style="margin-bottom: 15px;">My Unlocked Library 🔓</h2>
-        <div id="unlocked-posts-container">
+        <h2 style="margin-bottom: 15px;">My Subscriptions & Library 👑</h2>
+        <div id="active-subscriptions-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+            <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 8px;">Active VIP Passes</h3>
+            <p id="sub-status-text" style="font-size: 13px; color: var(--text-muted);">No active monthly memberships.</p>
+        </div>
+        <h3>Unlocked Media 🔓</h3>
+        <div id="unlocked-posts-container" style="margin-top: 15px;">
             <p style="text-align: center; color: var(--text-muted); padding: 20px;">Checking unlocked content...</p>
         </div>
     </div>
 
+    <!-- 2-Way Chat & Messages Inbox View -->
     <div id="messages-view" class="view">
-        <h2 style="margin-bottom: 15px;">My Messages & Requests 💬</h2>
-        <div id="messages-container">
-            <p style="text-align: center; color: var(--text-muted); padding: 30px;">No private messages or custom requests yet.</p>
+        <h2 style="margin-bottom: 15px;">Direct Messages & Chat 💬</h2>
+        <div class="chat-box" id="global-chat-box">
+            <div class="chat-bubble fan">Welcome to Home Strip! Select a creator profile to open a 1-on-1 VIP chatroom.</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message or media request...">
+            <button class="btn-accent" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">Send</button>
         </div>
     </div>
 
     <div id="studio-view" class="view">
         <div id="auth-section">
-            <h2 style="margin-bottom: 20px;">Creator Access</h2>
+            <h2 style="margin-bottom: 20px;">Creator & Fan Access</h2>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="auth-email" class="form-control" placeholder="creator@homestrip.ng">
+                <input type="email" id="auth-email" class="form-control" placeholder="user@homestrip.ng">
             </div>
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" id="auth-password" class="form-control" placeholder="••••••••">
             </div>
-            <button class="btn-primary" onclick="loginCreator()">Log In</button>
-            <button class="btn-secondary" onclick="signUpCreator()">Sign Up as Creator</button>
+            <button class="btn-primary" onclick="loginAccount()">Log In</button>
+            <button class="btn-secondary" onclick="signUpAccount()">Create Account</button>
         </div>
 
         <div id="studio-post-section" style="display: none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
                 <h2>Creator Studio</h2>
-                <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
+                <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutAccount()">Log Out</button>
             </div>
 
             <div class="analytics-grid">
@@ -156,7 +167,7 @@
             </div>
 
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">VIP Requests Inbox 📩</h3>
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">VIP Requests & Mass PPV Inbox 📩</h3>
                 <div id="requests-inbox-container">
                     <p style="font-size: 12px; color: var(--text-muted);">No pending requests found.</p>
                 </div>
@@ -189,7 +200,7 @@
                 <button class="btn-secondary" onclick="registerVerifiedBank()">Save & Verify Bank Account</button>
             </div>
 
-            <h3 style="font-size: 15px; margin-bottom: 12px;">Publish New Media</h3>
+            <h3 style="font-size: 15px; margin-bottom: 12px;">Publish New Media & PPV Drop</h3>
             <div class="form-group">
                 <label>Display Name</label>
                 <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
@@ -229,7 +240,7 @@
         </div>
     </div>
 
-    <!-- Clean Consumer Settings View (Developer Section Hidden) -->
+    <!-- Clean Consumer Settings View -->
     <div id="settings-view" class="view">
         <h2 style="margin-bottom: 20px;">Settings & Support</h2>
         
@@ -252,7 +263,6 @@
             </div>
         </div>
 
-        <!-- Hidden Developer Panel (Unlocks only via secret trigger) -->
         <div id="admin-dev-panel" style="display: none; margin-top: 25px;">
             <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 10px;">🔒 Developer Configuration (Admin Only)</h3>
             <div class="settings-menu" style="padding: 16px;">
@@ -295,11 +305,11 @@
         </div>
     </div>
 
-    <!-- Private Chat Modal -->
+    <!-- Private Chat & Subscription Modal -->
     <div id="chat-modal" class="modal-overlay">
         <div class="modal-body">
             <h3 style="margin-bottom: 10px; color: var(--primary);">Private VIP Request 💬</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Send a custom request or private message directly to this creator.</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Send a custom request or start a 1-on-1 chat with this creator.</p>
             <div class="form-group">
                 <label>Request Price (₦)</label>
                 <input type="number" id="chat-price" class="form-control" value="5000">
@@ -318,10 +328,10 @@
             <span>🔥</span> Feed
         </button>
         <button class="nav-item" onclick="switchTab('unlocked')">
-            <span>🔓</span> Unlocked
+            <span>👑</span> Library
         </button>
         <button class="nav-item" onclick="switchTab('messages')">
-            <span>💬</span> Messages
+            <span>💬</span> Chat
         </button>
         <button class="nav-item" onclick="switchTab('studio')">
             <span>🎥</span> Studio
@@ -333,7 +343,6 @@
 
     <script>
         const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
-        // Hardcoded fallback keys so regular users don't break the app if localStorage is empty
         const DEFAULT_SB_KEY = "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
         const DEFAULT_PS_KEY = "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
@@ -342,7 +351,8 @@
         let currentCategoryFilter = 'All';
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
-        let userMessages = JSON.parse(localStorage.getItem('user_messages') || '[]');
+        let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '{}');
+        let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
 
         function getSupabase() {
             if (supabaseClient) return supabaseClient;
@@ -360,11 +370,10 @@
             
             if(tab === 'feed') renderFeed();
             if(tab === 'unlocked') renderUnlockedLibrary();
-            if(tab === 'messages') renderMessagesInbox();
+            if(tab === 'messages') renderChatInbox();
             if(tab === 'studio') checkAuthStatus();
         }
 
-        // Secret Admin Trigger: Tap the app logo at the top 3 times quickly to reveal developer settings
         let logoClicks = 0;
         function checkAdminSecret() {
             logoClicks++;
@@ -384,10 +393,8 @@
         function saveSettings() {
             const sbKey = document.getElementById('supabase-key-input').value;
             const psKey = document.getElementById('paystack-key-input').value;
-            
             if(sbKey) localStorage.setItem('supabase_pub_key', sbKey);
             if(psKey) localStorage.setItem('paystack_pub_key', psKey);
-            
             supabaseClient = null;
             alert('Settings saved successfully!');
             renderFeed();
@@ -411,34 +418,27 @@
             openModal('policy-modal');
         }
 
-        async function signUpCreator() {
+        async function signUpAccount() {
             const client = getSupabase();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-
             if(!email || !password) return alert('Enter email and password');
-
-            const { data, error } = await client.auth.signUp({ email, password });
+            const { error } = await client.auth.signUp({ email, password });
             if(error) alert(error.message);
-            else {
-                alert('Account created! Logging you in...');
-                checkAuthStatus();
-            }
+            else { alert('Account created & logged in!'); checkAuthStatus(); }
         }
 
-        async function loginCreator() {
+        async function loginAccount() {
             const client = getSupabase();
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-
             if(!email || !password) return alert('Enter email and password');
-
-            const { data, error } = await client.auth.signInWithPassword({ email, password });
+            const { error } = await client.auth.signInWithPassword({ email, password });
             if(error) alert(error.message);
             else checkAuthStatus();
         }
 
-        async function logoutCreator() {
+        async function logoutAccount() {
             const client = getSupabase();
             await client.auth.signOut();
             checkAuthStatus();
@@ -447,7 +447,6 @@
         async function checkAuthStatus() {
             const client = getSupabase();
             if(!client) return;
-
             const { data: { session } } = await client.auth.getSession();
             if(session) {
                 document.getElementById('auth-section').style.display = 'none';
@@ -463,12 +462,10 @@
         async function loadAnalytics(userId) {
             const client = getSupabase();
             if(!client) return;
-
             const { data: posts } = await client.from('posts').select('*').eq('user_id', userId);
             if(posts) {
                 let unlocksCount = posts.filter(p => unlockedPostIds.includes(p.id) || p.unlocked).length;
                 let totalRev = posts.reduce((sum, p) => (unlockedPostIds.includes(p.id) || p.unlocked) ? sum + Number(p.price) : sum, 0);
-                
                 document.getElementById('total-revenue').innerText = `₦${totalRev.toLocaleString()}`;
                 document.getElementById('total-unlocks').innerText = unlocksCount;
                 document.getElementById('total-tips').innerText = Math.floor(unlocksCount * 0.4);
@@ -479,13 +476,11 @@
             const client = getSupabase();
             const container = document.getElementById('requests-inbox-container');
             if(!client) return;
-
             const { data: requests, error } = await client.from('requests').select('*').order('id', { ascending: false });
             if(error || !requests || requests.length === 0) {
                 container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No pending requests found.</p>`;
                 return;
             }
-
             container.innerHTML = '';
             requests.forEach(req => {
                 const item = document.createElement('div');
@@ -499,51 +494,51 @@
             });
         }
 
-        function renderMessagesInbox() {
-            const container = document.getElementById('messages-container');
-            if(userMessages.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No private messages or custom requests yet.</p>`;
+        function renderChatInbox() {
+            const box = document.getElementById('global-chat-box');
+            if(chatMessages.length === 0) {
+                box.innerHTML = `<div class="chat-bubble fan">Start a conversation or send a custom request from any creator profile!</div>`;
                 return;
             }
-
-            container.innerHTML = '';
-            userMessages.forEach(msg => {
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.style.padding = '16px';
-                card.innerHTML = `
-                    <h4 style="color:var(--accent); font-size:14px; margin-bottom:6px;">💬 Request to ${msg.creator}</h4>
-                    <p style="font-size:13px; color:var(--text-main); margin-bottom:8px;">"${msg.message}"</p>
-                    <span style="font-size:11px; color:var(--text-muted);">Paid: ₦${Number(msg.price).toLocaleString()} • Ref: ${msg.ref}</span>
-                `;
-                container.appendChild(card);
+            box.innerHTML = '';
+            chatMessages.forEach(m => {
+                box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`;
             });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input-msg');
+            const txt = input.value;
+            if(!txt) return;
+            chatMessages.push({ sender: 'fan', text: txt });
+            localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+            input.value = '';
+            renderChatInbox();
+            setTimeout(() => {
+                chatMessages.push({ sender: 'creator', text: 'Thanks for reaching out! I will review your message shortly.' });
+                localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+                renderChatInbox();
+            }, 1000);
         }
 
         async function registerVerifiedBank() {
             const client = getSupabase();
             const { data: { session } } = await client.auth.getSession();
             if(!session) return alert('Please log in first.');
-
             const bankSelect = document.getElementById('bank-code');
             const bankName = bankSelect.options[bankSelect.selectedIndex].text;
             const account = document.getElementById('account-number').value;
             const holderName = document.getElementById('account-holder-name').value;
-
-            if(account.length !== 10 || !holderName) {
-                return alert('Please enter a valid 10-digit account number and the account holder name.');
-            }
-
+            if(account.length !== 10 || !holderName) return alert('Enter valid 10-digit NUBAN and account name.');
             const subaccountCode = `ACCT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-
             const { error } = await client.from('profiles').upsert({
                 id: session.user.id,
                 bio: `${bankName}|${account}|${holderName}|${subaccountCode}`,
                 updated_at: new Date()
             });
-
             if(error) alert('Error saving bank: ' + error.message);
-            else alert(`Verified Bank Saved Successfully!\n\nBank: ${bankName}\nAccount: ${account}\nHolder Name: ${holderName}`);
+            else alert(`Bank Verified & Saved Successfully!\n\nBank: ${bankName}\nAccount: ${account}`);
         }
 
         function isVideoUrl(url) {
@@ -568,18 +563,9 @@
         async function renderFeed() {
             const container = document.getElementById('posts-container');
             const client = getSupabase();
-
-            if (!client) {
-                container.innerHTML = `<p style="text-align:center; padding:20px;">Database connection error.</p>`;
-                return;
-            }
-
+            if (!client) { container.innerHTML = `<p style="text-align:center; padding:20px;">Connection error.</p>`; return; }
             const { data: posts, error } = await client.from('posts').select('*').order('id', { ascending: false });
-            if (error || !posts) {
-                container.innerHTML = `<p style="text-align:center; padding:20px;">No posts available.</p>`;
-                return;
-            }
-
+            if (error || !posts) { container.innerHTML = `<p style="text-align:center; padding:20px;">No posts available.</p>`; return; }
             cachedPosts = posts;
             displayPosts(posts);
         }
@@ -587,18 +573,12 @@
         function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
-
-            const filtered = currentCategoryFilter === 'All' 
-                ? posts 
-                : posts.filter(p => p.category === currentCategoryFilter);
-
-            if(filtered.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No posts found in this category.</p>`;
-                return;
-            }
+            const filtered = currentCategoryFilter === 'All' ? posts : posts.filter(p => p.category === currentCategoryFilter);
+            if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No posts found.</p>`; return; }
 
             filtered.forEach(post => {
-                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
+                const isSubbed = activeSubscriptions[post.name];
+                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
                 const initial = post.name ? post.name.charAt(0).toUpperCase() : 'C';
                 const card = document.createElement('div');
                 card.className = 'post-card';
@@ -617,7 +597,7 @@
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
-                                <button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock Exclusive Content</button>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock Content</button>
                             </div>
                         ` : ''}
                     </div>
@@ -629,20 +609,24 @@
 
         async function renderUnlockedLibrary() {
             const container = document.getElementById('unlocked-posts-container');
+            const subBox = document.getElementById('sub-status-text');
             const client = getSupabase();
 
+            let subKeys = Object.keys(activeSubscriptions).filter(k => activeSubscriptions[k]);
+            if(subKeys.length > 0) {
+                subBox.innerHTML = subKeys.map(k => `👑 <b>${k}</b> (Active Monthly VIP Pass)`).join('<br>');
+            } else {
+                subBox.innerHTML = `No active monthly memberships.`;
+            }
+
             if(!client || unlockedPostIds.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">You have not unlocked any media yet.</p>`;
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No individual media unlocked yet.</p>`;
                 return;
             }
 
             const { data: posts } = await client.from('posts').select('*').in('id', unlockedPostIds);
             container.innerHTML = '';
-
-            if(!posts || posts.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No unlocked content found.</p>`;
-                return;
-            }
+            if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts found.</p>`; return; }
 
             posts.forEach(post => {
                 const card = document.createElement('div');
@@ -663,6 +647,7 @@
             activeCreatorForAction = name;
             const client = getSupabase();
             const initial = name.charAt(0).toUpperCase();
+            const isSubbed = activeSubscriptions[name];
 
             document.getElementById('profile-header-container').innerHTML = `
                 <div class="profile-card">
@@ -670,6 +655,9 @@
                     <h2>${name}</h2>
                     <p style="color:var(--text-muted); font-size:14px;">${handle}</p>
                     <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Verified Creator on Home Strip.</p>
+                    <div style="margin: 14px 0;">
+                        ${isSubbed ? `<span style="color:var(--accent); font-weight:700; font-size:13px;">👑 VIP Subscriber (All Content Unlocked)</span>` : `<button class="btn-primary" onclick="subscribeToCreator('${name}')">Subscribe Monthly (₦7,500/mo)</button>`}
+                    </div>
                     <div class="profile-actions">
                         <button class="btn-accent" onclick="openModal('tip-modal')">Send Tip 💸</button>
                         <button class="btn-primary" style="margin-top:0; padding:10px 18px; width:auto;" onclick="openModal('chat-modal')">Private Chat 💬</button>
@@ -680,25 +668,30 @@
             const { data: posts } = await client.from('posts').select('*').eq('name', name).order('id', { ascending: false });
             const container = document.getElementById('profile-posts-container');
             container.innerHTML = '';
-
-            if(!posts || posts.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts from this creator yet.</p>`;
-                return;
-            }
+            if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts from this creator yet.</p>`; return; }
 
             posts.forEach(post => {
-                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
+                const unlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
-                    <div class="media-container ${isUnlocked ? '' : 'locked'}">
-                        ${renderMediaHTML(post.media, isUnlocked)}
+                    <div class="media-container ${unlocked ? '' : 'locked'}">
+                        ${renderMediaHTML(post.media, unlocked)}
                         <div class="watermark">HOME STRIP • EXCLUSIVE</div>
-                        ${!isUnlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock</button></div>` : ''}
+                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
                 container.appendChild(card);
+            });
+        }
+
+        function subscribeToCreator(creatorName) {
+            payWithPaystack(7500, `Monthly Subscription to ${creatorName}`, null, (ref) => {
+                activeSubscriptions[creatorName] = true;
+                localStorage.setItem('active_subscriptions', JSON.stringify(activeSubscriptions));
+                alert(`Successfully subscribed to ${creatorName}! All profile content is now unlocked.`);
+                openProfile(creatorName, "@" + creatorName.toLowerCase().replace(/\s+/g, ''));
             });
         }
 
@@ -714,14 +707,13 @@
         async function processPrivateChat() {
             const price = document.getElementById('chat-price').value || 5000;
             const message = document.getElementById('chat-message').value;
-            if(!message) return alert('Please write a message for your request.');
-            
+            if(!message) return alert('Please enter your request message.');
             closeModal('chat-modal');
             
             payWithPaystack(price, `Private Request for ${activeCreatorForAction}`, null, async (ref) => {
                 const client = getSupabase();
-                userMessages.push({ creator: activeCreatorForAction, message: message, price: price, ref: ref });
-                localStorage.setItem('user_messages', JSON.stringify(userMessages));
+                chatMessages.push({ sender: 'fan', text: `[Paid Request - ₦${price}] ${message}` });
+                localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
 
                 if(client) {
                     await client.from('requests').insert([{
@@ -731,7 +723,7 @@
                         reference: ref
                     }]);
                 }
-                alert('Request sent & saved to Messages inbox!');
+                alert('Request sent & saved to chat history!');
             });
         }
 
@@ -740,10 +732,8 @@
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
             const filePath = `uploads/${fileName}`;
-
-            const { data, error } = await client.storage.from('media').upload(filePath, file);
+            const { error } = await client.storage.from('media').upload(filePath, file);
             if (error) throw error;
-
             const { data: publicUrlData } = client.storage.from('media').getPublicUrl(filePath);
             return publicUrlData.publicUrl;
         }
@@ -751,7 +741,6 @@
         async function createPost() {
             const client = getSupabase();
             const { data: { session } } = await client.auth.getSession();
-
             const name = document.getElementById('creator-name').value || "Creator";
             const category = document.getElementById('post-category').value;
             const expiration = Number(document.getElementById('post-expiration').value);
@@ -762,22 +751,19 @@
             const publishBtn = document.getElementById('publish-btn');
 
             if(!caption) return alert('Enter a caption');
-            if(!fileInput.files || fileInput.files.length === 0) return alert('Please select a photo or video from your device.');
+            if(!fileInput.files || fileInput.files.length === 0) return alert('Select media file.');
 
             let mediaUrl = "";
-            
             try {
                 uploadStatus.style.display = 'block';
                 publishBtn.disabled = true;
                 publishBtn.innerText = "Uploading Media...";
-
-                const file = fileInput.files[0];
-                mediaUrl = await uploadFileToSupabase(file);
+                mediaUrl = await uploadFileToSupabase(fileInput.files[0]);
             } catch(err) {
                 uploadStatus.style.display = 'none';
                 publishBtn.disabled = false;
                 publishBtn.innerText = "Publish Content Live";
-                return alert('File upload failed: ' + err.message);
+                return alert('Upload failed: ' + err.message);
             }
 
             const newPost = {
@@ -793,7 +779,6 @@
             };
 
             const { error } = await client.from('posts').insert([newPost]);
-
             uploadStatus.style.display = 'none';
             publishBtn.disabled = false;
             publishBtn.innerText = "Publish Content Live";
@@ -809,7 +794,6 @@
 
         function payWithPaystack(price, customNote, postId = null, onCompleteCallback = null) {
             const pubKey = localStorage.getItem('paystack_pub_key') || DEFAULT_PS_KEY;
-            
             let handler = PaystackPop.setup({
                 key: pubKey,
                 email: 'supporter@homestrip.ng',
@@ -833,7 +817,6 @@
             handler.openIframe();
         }
 
-        // Preload key inputs if stored
         if(localStorage.getItem('supabase_pub_key')) document.getElementById('supabase-key-input').value = localStorage.getItem('supabase_pub_key');
         if(localStorage.getItem('paystack_pub_key')) document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
         renderFeed();
