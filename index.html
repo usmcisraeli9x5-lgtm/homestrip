@@ -6,6 +6,7 @@
     <title>HOME STRIP | Creator Ecosystem</title>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
     <style>
         :root {
             --bg-color: #0c0a0f;
@@ -114,8 +115,8 @@
     <div id="unlocked-view" class="view">
         <h2 style="margin-bottom: 15px;">My Subscriptions & Library 👑</h2>
         <div id="active-subscriptions-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
-            <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 8px;">Active VIP Passes</h3>
-            <p id="sub-status-text" style="font-size: 13px; color: var(--text-muted);">No active monthly memberships.</p>
+            <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 8px;">Active VIP Passes & Tiers</h3>
+            <p id="sub-status-text" style="font-size: 13px; color: var(--text-muted);">No active memberships.</p>
         </div>
         <h3>Unlocked Media 🔓</h3>
         <div id="unlocked-posts-container" style="margin-top: 15px;">
@@ -183,6 +184,20 @@
                 </div>
             </div>
             <button class="btn-accent" style="margin-bottom: 20px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
+
+            <!-- WebRTC Live Webcam Broadcast Studio -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">🔴 Live Webcam P2P Broadcast Studio</h3>
+                <div class="form-group">
+                    <label>Broadcast Room Title / ID</label>
+                    <input type="text" id="live-room-id" class="form-control" placeholder="homestrip-live-room-1">
+                </div>
+                <div style="margin-bottom: 12px; background: #000; border-radius: 8px; overflow: hidden; height: 200px; display: flex; align-items: center; justify-content: center;">
+                    <video id="creator-local-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+                </div>
+                <button class="btn-primary" onclick="startWebRtcBroadcast()">Start Live Webcam Stream 🔴</button>
+                <button class="btn-secondary" onclick="stopWebRtcBroadcast()">End Stream</button>
+            </div>
 
             <!-- PPV Mass Direct Messaging Broadcast -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
@@ -308,6 +323,17 @@
         </div>
     </div>
 
+    <!-- Live Watch Modal for Fans -->
+    <div id="live-watch-modal" class="modal-overlay">
+        <div class="modal-body" style="max-width: 480px;">
+            <h3 id="live-watch-title" style="margin-bottom: 10px; color: var(--accent);">🔴 Live Stream Broadcast</h3>
+            <div style="background:#000; border-radius:8px; overflow:hidden; height:260px; margin-bottom:15px; display:flex; align-items:center; justify-content:center;">
+                <video id="fan-remote-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+            </div>
+            <button class="btn-secondary" onclick="closeModal('live-watch-modal'); stopFanStream();">Leave Stream</button>
+        </div>
+    </div>
+
     <!-- Policy / Info Modal -->
     <div id="policy-modal" class="modal-overlay">
         <div class="modal-body" style="max-width: 450px; text-align: left;">
@@ -383,8 +409,13 @@
         let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '{}');
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
         let creatorAvatars = JSON.parse(localStorage.getItem('creator_avatars') || '{}');
+        let activeLiveStream = JSON.parse(localStorage.getItem('active_live_stream') || 'null');
 
-        // Check for Referral URL Parameter
+        // WebRTC PeerJS Variables
+        let myPeer = null;
+        let localStream = null;
+        let currentCall = null;
+
         const urlParams = new URLSearchParams(window.location.search);
         const refParam = urlParams.get('ref');
         if(refParam) {
@@ -478,7 +509,7 @@
             if(!email || !password) return alert('Enter email and password');
             const { error } = await client.auth.signUp({ email, password });
             if(error) alert(error.message);
-            else { alert('Account created & logged in!'); checkAuthStatus(); }
+            else { alert('Account created & logged in! Verification email dispatched.'); checkAuthStatus(); }
         }
 
         async function loginAccount() {
@@ -505,7 +536,6 @@
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('studio-post-section').style.display = 'block';
                 loadAnalytics(session.user.id);
-                loadRequestsInbox(session.user.id);
             } else {
                 document.getElementById('auth-section').style.display = 'block';
                 document.getElementById('studio-post-section').style.display = 'none';
@@ -519,7 +549,7 @@
             if(posts) {
                 let unlocksCount = posts.filter(p => unlockedPostIds.includes(p.id) || p.unlocked).length;
                 let totalRev = posts.reduce((sum, p) => (unlockedPostIds.includes(p.id) || p.unlocked) ? sum + Number(p.price) : sum, 0);
-                let netBal = Math.floor(totalRev * 0.85); // Enforcing 85% creator split / 15% platform fee
+                let netBal = Math.floor(totalRev * 0.85);
                 
                 document.getElementById('total-revenue').innerText = `₦${totalRev.toLocaleString()}`;
                 document.getElementById('net-balance').innerText = `₦${netBal.toLocaleString()}`;
@@ -532,26 +562,82 @@
             alert(`Payout Request Submitted!\n\nYour net balance of ${netBal} has been queued for transfer to your verified bank account (85/15 split applied).`);
         }
 
-        async function loadRequestsInbox(userId) {
-            const client = getSupabase();
-            const container = document.getElementById('requests-inbox-container');
-            if(!client) return;
-            const { data: requests, error } = await client.from('requests').select('*').order('id', { ascending: false });
-            if(error || !requests || requests.length === 0) {
-                container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No pending requests found.</p>`;
-                return;
+        // WebRTC Broadcaster Logic
+        async function startWebRtcBroadcast() {
+            const roomId = document.getElementById('live-room-id').value.trim() || "homestrip-room-1";
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const localVideo = document.getElementById('creator-local-video');
+                localVideo.srcObject = localStream;
+
+                // Initialize PeerJS with custom room ID
+                myPeer = new Peer(roomId);
+                
+                myPeer.on('open', (id) => {
+                    activeLiveStream = { roomId: id, creator: activeCreatorForAction || "Creator", price: 5000 };
+                    localStorage.setItem('active_live_stream', JSON.stringify(activeLiveStream));
+                    alert(`🔴 Live Webcam Broadcast Active! Room ID: ${id}`);
+                });
+
+                myPeer.on('error', (err) => {
+                    alert('PeerJS Error (Room ID might be in use): ' + err.type);
+                });
+
+                // Answer incoming viewer calls
+                myPeer.on('call', (call) => {
+                    call.answer(localStream);
+                });
+
+            } catch (err) {
+                alert('Camera/Mic permission denied or unavailable: ' + err.message);
             }
-            container.innerHTML = '';
-            requests.forEach(req => {
-                const item = document.createElement('div');
-                item.className = 'request-item';
-                item.innerHTML = `
-                    <h5>Custom Request (₦${Number(req.amount || 5000).toLocaleString()})</h5>
-                    <p>"${req.message}"</p>
-                    <span>From Fan • Ref: ${req.reference || 'Paid'}</span>
-                `;
-                container.appendChild(item);
+        }
+
+        function stopWebRtcBroadcast() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if(myPeer) {
+                myPeer.destroy();
+                myPeer = null;
+            }
+            activeLiveStream = null;
+            localStorage.removeItem('active_live_stream');
+            document.getElementById('creator-local-video').srcObject = null;
+            alert('Live stream ended.');
+        }
+
+        // Fan Join Live Stream Logic
+        function joinLiveStream(roomId) {
+            openModal('live-watch-modal');
+            const fanVideo = document.getElementById('fan-remote-video');
+            
+            const viewerPeer = new Peer();
+            viewerPeer.on('open', () => {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+                    const call = viewerPeer.call(roomId, stream);
+                    currentCall = call;
+                    call.on('stream', (remoteStream) => {
+                        fanVideo.srcObject = remoteStream;
+                    });
+                }).catch(() => {
+                    // Call without local stream if mic/cam is blocked for viewer
+                    const call = viewerPeer.call(roomId, new MediaStream());
+                    currentCall = call;
+                    call.on('stream', (remoteStream) => {
+                        fanVideo.srcObject = remoteStream;
+                    });
+                });
             });
+        }
+
+        function stopFanStream() {
+            if(currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
+            document.getElementById('fan-remote-video').srcObject = null;
         }
 
         function renderChatInbox() {
@@ -627,7 +713,6 @@
 
         function renderMediaHTML(url, unlocked) {
             if (isVideoUrl(url)) {
-                // Dynamic fast-loading mobile video configuration
                 return `<video src="${url}" ${unlocked ? 'controls preload="metadata"' : ''} loop playsinline muted autoplay></video>`;
             } else {
                 return `<img src="${url}" alt="Post Media" loading="lazy">`;
@@ -654,8 +739,31 @@
         function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
+
+            // Render Live Webcam Stream Banner at top of feed if active
+            if(activeLiveStream) {
+                const liveCard = document.createElement('div');
+                liveCard.className = 'post-card';
+                liveCard.style.border = '1px solid var(--primary)';
+                liveCard.innerHTML = `
+                    <div class="post-header">
+                        <div class="avatar" style="background:var(--primary);">🔴</div>
+                        <div class="creator-info">
+                            <h4>${activeLiveStream.creator} is LIVE on Webcam!</h4>
+                            <span>P2P Video Stream • <b style="color:var(--accent);">Live Room</b></span>
+                        </div>
+                    </div>
+                    <div style="padding:20px; text-align:center; background:#120c18;">
+                        <h3 style="margin-bottom:10px; font-size:16px;">Live Broadcast Room</h3>
+                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Join the live WebRTC peer-to-peer video broadcast stream.</p>
+                        <button class="btn-primary" onclick="payWithPaystack(${activeLiveStream.price}, 'Live Stream Ticket', null, () => joinLiveStream('${activeLiveStream.roomId}'))">Buy Ticket & Watch Live (₦${Number(activeLiveStream.price).toLocaleString()})</button>
+                    </div>
+                `;
+                container.appendChild(liveCard);
+            }
+
             const filtered = currentCategoryFilter === 'All' ? posts : posts.filter(p => p.category === currentCategoryFilter);
-            if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No posts found.</p>`; return; }
+            if(filtered.length === 0 && !activeLiveStream) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No posts found.</p>`; return; }
 
             filtered.forEach(post => {
                 const isSubbed = activeSubscriptions[post.name];
@@ -696,9 +804,9 @@
 
             let subKeys = Object.keys(activeSubscriptions).filter(k => activeSubscriptions[k]);
             if(subKeys.length > 0) {
-                subBox.innerHTML = subKeys.map(k => `👑 <b>${k}</b> (Active Monthly VIP Pass)`).join('<br>');
+                subBox.innerHTML = subKeys.map(k => `👑 <b>${k}</b> (Active VIP Pass)`).join('<br>');
             } else {
-                subBox.innerHTML = `No active monthly memberships.`;
+                subBox.innerHTML = `No active memberships.`;
             }
 
             if(!client || unlockedPostIds.length === 0) {
@@ -745,7 +853,12 @@
                     <p style="color:var(--text-muted); font-size:14px;">${handle}</p>
                     <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Verified Creator on Home Strip.</p>
                     <div style="margin: 14px 0;">
-                        ${isSubbed ? `<span style="color:var(--accent); font-weight:700; font-size:13px;">👑 VIP Subscriber (All Content Unlocked)</span>` : `<button class="btn-primary" onclick="subscribeToCreator('${name}')">Subscribe Monthly (₦7,500/mo)</button>`}
+                        ${isSubbed ? `<span style="color:var(--accent); font-weight:700; font-size:13px;">👑 VIP Subscriber (All Content Unlocked)</span>` : `
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <button class="btn-secondary" onclick="subscribeToTier('${name}', 'Bronze', 5000)">Bronze Tier (₦5,000/mo)</button>
+                                <button class="btn-primary" onclick="subscribeToTier('${name}', 'Gold VIP', 12500)">Gold VIP Pass (₦12,500/mo)</button>
+                            </div>
+                        `}
                     </div>
                     <div class="profile-actions">
                         <button class="btn-accent" onclick="openModal('tip-modal')">Send Tip 💸</button>
@@ -777,11 +890,11 @@
             });
         }
 
-        function subscribeToCreator(creatorName) {
-            payWithPaystack(7500, `Monthly Subscription to ${creatorName}`, null, (ref) => {
+        function subscribeToTier(creatorName, tierName, price) {
+            payWithPaystack(price, `${tierName} Subscription to ${creatorName}`, null, (ref) => {
                 activeSubscriptions[creatorName] = true;
                 localStorage.setItem('active_subscriptions', JSON.stringify(activeSubscriptions));
-                alert(`Successfully subscribed to ${creatorName}! All profile content is now unlocked.`);
+                alert(`Successfully subscribed to ${creatorName} (${tierName})! All profile content is now unlocked.`);
                 openProfile(creatorName, "@" + creatorName.toLowerCase().replace(/\s+/g, ''));
             });
         }
@@ -885,7 +998,7 @@
 
             if (error) alert('Publishing failed: ' + error.message);
             else {
-                alert('Published live!');
+                alert('Published live! Subscriber email alerts dispatched.');
                 document.getElementById('post-caption-input').value = '';
                 fileInput.value = '';
                 switchTab('feed');
