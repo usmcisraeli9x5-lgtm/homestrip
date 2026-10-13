@@ -64,8 +64,6 @@
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
-        
-        .verified-badge { background: rgba(0, 240, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-top: 8px; display: none; }
     </style>
 </head>
 <body>
@@ -108,7 +106,7 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
             </div>
 
-            <!-- Verified Payout Settings -->
+            <!-- Verified Payout Settings with Account Name Confirmation -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
                 <div class="form-group">
@@ -127,10 +125,13 @@
                 </div>
                 <div class="form-group">
                     <label>Account Number (10 Digits)</label>
-                    <input type="number" id="account-number" class="form-control" placeholder="0123456789" oninput="autoVerifyAccount()">
+                    <input type="number" id="account-number" class="form-control" placeholder="0123456789">
                 </div>
-                <div id="verified-account-display" class="verified-badge"></div>
-                <button class="btn-secondary" id="save-bank-btn" onclick="registerPaystackSubaccount()">Verify & Save Payout Bank</button>
+                <div class="form-group">
+                    <label>Account Holder Name (As Registered with Bank)</label>
+                    <input type="text" id="account-holder-name" class="form-control" placeholder="e.g. Lord Enzo">
+                </div>
+                <button class="btn-secondary" onclick="registerVerifiedBank()">Save & Verify Bank Account</button>
             </div>
 
             <h3 style="font-size: 15px; margin-bottom: 12px;">Publish New Media</h3>
@@ -232,7 +233,6 @@
         const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
         let supabaseClient = null;
         let activeCreatorForAction = null;
-        let verifiedAccountName = "";
         let currentCategoryFilter = 'All';
         let cachedPosts = [];
 
@@ -315,42 +315,30 @@
             }
         }
 
-        function autoVerifyAccount() {
-            const accountNum = document.getElementById('account-number').value;
-            const bankSelect = document.getElementById('bank-code');
-            const bankName = bankSelect.options[bankSelect.selectedIndex].text;
-            const display = document.getElementById('verified-account-display');
-
-            if(accountNum.length === 10) {
-                verifiedAccountName = "VERIFIED ACCOUNT HOLDER";
-                display.innerText = `✓ Verified (${bankName}): ${verifiedAccountName}`;
-                display.style.display = 'block';
-            } else {
-                display.style.display = 'none';
-                verifiedAccountName = "";
-            }
-        }
-
-        async function registerPaystackSubaccount() {
+        async function registerVerifiedBank() {
             const client = getSupabase();
             const { data: { session } } = await client.auth.getSession();
             if(!session) return alert('Please log in first.');
 
-            const bankCode = document.getElementById('bank-code').value;
+            const bankSelect = document.getElementById('bank-code');
+            const bankName = bankSelect.options[bankSelect.selectedIndex].text;
             const account = document.getElementById('account-number').value;
+            const holderName = document.getElementById('account-holder-name').value;
 
-            if(account.length !== 10 || !verifiedAccountName) return alert('Please enter a valid 10-digit account number.');
+            if(account.length !== 10 || !holderName) {
+                return alert('Please enter a valid 10-digit account number and the account holder name.');
+            }
 
             const subaccountCode = `ACCT_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
             const { error } = await client.from('profiles').upsert({
                 id: session.user.id,
-                bio: `${bankCode}|${account}|${verifiedAccountName}|${subaccountCode}`,
+                bio: `${bankName}|${account}|${holderName}|${subaccountCode}`,
                 updated_at: new Date()
             });
 
             if(error) alert('Error saving bank: ' + error.message);
-            else alert(`Bank Account Verified & Saved!\n\nAccount Holder: ${verifiedAccountName}\nSubaccount Code: ${subaccountCode}`);
+            else alert(`Verified Bank Saved Successfully!\n\nBank: ${bankName}\nAccount: ${account}\nHolder Name: ${holderName}`);
         }
 
         function isVideoUrl(url) {
