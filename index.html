@@ -38,8 +38,8 @@
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
         .media-container { position: relative; width: 100%; height: 320px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .media-container img { width: 100%; height: 100%; object-fit: cover; }
-        .media-container.locked img { filter: blur(25px); transform: scale(1.1); }
+        .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
+        .media-container.locked img, .media-container.locked video { filter: blur(25px); transform: scale(1.1); pointer-events: none; }
         
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; }
         .price-tag { font-size: 24px; font-weight: 800; color: var(--text-main); }
@@ -52,10 +52,14 @@
         .form-control { width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 14px; }
         .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .btn-accent { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
         .profile-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
-        .profile-bio { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+        .profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+        .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
@@ -91,6 +95,22 @@
                 <h2>Creator Studio</h2>
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
             </div>
+
+            <!-- Creator Bank Details -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Bank Payout Settings</h3>
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" id="bank-name" class="form-control" placeholder="e.g. GTBank, Kuda, Zenith">
+                </div>
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="number" id="account-number" class="form-control" placeholder="0123456789">
+                </div>
+                <button class="btn-secondary" onclick="saveBankDetails()">Save Payout Info</button>
+            </div>
+
+            <h3 style="font-size: 15px; margin-bottom: 12px;">Publish New Media</h3>
             <div class="form-group">
                 <label>Display Name</label>
                 <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
@@ -104,8 +124,8 @@
                 <input type="number" id="post-price" class="form-control" placeholder="2500">
             </div>
             <div class="form-group">
-                <label>Media Image URL</label>
-                <input type="text" id="post-media" class="form-control" placeholder="https://images.unsplash.com/...">
+                <label>Media URL (Image or MP4 Video)</label>
+                <input type="text" id="post-media" class="form-control" placeholder="https://... image or .mp4 video link">
             </div>
             <button class="btn-primary" onclick="createPost()">Publish Content Live</button>
         </div>
@@ -130,6 +150,23 @@
         <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
     </div>
 
+    <!-- Tip Modal -->
+    <div id="tip-modal" class="modal-overlay">
+        <div class="modal-body">
+            <h3 style="margin-bottom: 10px; color: var(--accent);">Send Creator Tip 💸</h3>
+            <div class="form-group">
+                <label>Tip Amount (₦)</label>
+                <input type="number" id="tip-amount" class="form-control" value="2000">
+            </div>
+            <div class="form-group">
+                <label>Optional Note</label>
+                <input type="text" id="tip-note" class="form-control" placeholder="Love your work!">
+            </div>
+            <button class="btn-primary" onclick="processTip()">Send Tip Now</button>
+            <button class="btn-secondary" onclick="closeModal('tip-modal')">Cancel</button>
+        </div>
+    </div>
+
     <nav class="nav-bar">
         <button class="nav-item active" onclick="switchTab('feed')">
             <span>🔥</span> Feed
@@ -145,6 +182,7 @@
     <script>
         const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
         let supabaseClient = null;
+        let activeCreatorForTip = null;
 
         function getSupabase() {
             if (supabaseClient) return supabaseClient;
@@ -219,9 +257,53 @@
             if(session) {
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('studio-post-section').style.display = 'block';
+                
+                // Fetch creator saved bank info
+                const { data: profile } = await client.from('profiles').select('*').eq('id', session.user.id).single();
+                if(profile && profile.bio) {
+                    const bankParts = profile.bio.split('|');
+                    if(bankParts.length === 2) {
+                        document.getElementById('bank-name').value = bankParts[0];
+                        document.getElementById('account-number').value = bankParts[1];
+                    }
+                }
             } else {
                 document.getElementById('auth-section').style.display = 'block';
                 document.getElementById('studio-post-section').style.display = 'none';
+            }
+        }
+
+        async function saveBankDetails() {
+            const client = getSupabase();
+            const { data: { session } } = await client.auth.getSession();
+            if(!session) return alert('Please log in first.');
+
+            const bank = document.getElementById('bank-name').value;
+            const account = document.getElementById('account-number').value;
+
+            if(!bank || !account) return alert('Enter both bank name and account number.');
+
+            const { error } = await client.from('profiles').upsert({
+                id: session.user.id,
+                bio: `${bank}|${account}`,
+                updated_at: new Date()
+            });
+
+            if(error) alert('Error saving bank details: ' + error.message);
+            else alert('Bank payout settings saved successfully!');
+        }
+
+        function isVideoUrl(url) {
+            return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i) || url.includes('video');
+        }
+
+        function renderMediaHTML(url, unlocked) {
+            if (isVideoUrl(url)) {
+                return `
+                    <video src="${url}" ${unlocked ? 'controls' : ''} loop playsinline muted autoplay></video>
+                `;
+            } else {
+                return `<img src="${url}" alt="Post Media">`;
             }
         }
 
@@ -254,7 +336,7 @@
                         </div>
                     </div>
                     <div class="media-container ${post.unlocked ? '' : 'locked'}">
-                        <img src="${post.media}" alt="Post Media">
+                        ${renderMediaHTML(post.media, post.unlocked)}
                         ${!post.unlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
@@ -270,6 +352,7 @@
 
         async function openProfile(name, handle) {
             switchTab('profile');
+            activeCreatorForTip = name;
             const client = getSupabase();
             const initial = name.charAt(0).toUpperCase();
 
@@ -278,7 +361,10 @@
                     <div class="profile-avatar">${initial}</div>
                     <h2>${name}</h2>
                     <p style="color:var(--text-muted); font-size:14px;">${handle}</p>
-                    <p class="profile-bio">Verified Creator on Home Strip.</p>
+                    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Verified Creator on Home Strip.</p>
+                    <div class="profile-actions">
+                        <button class="btn-accent" onclick="openModal('tip-modal')">Send Tip 💸</button>
+                    </div>
                 </div>
             `;
 
@@ -296,13 +382,22 @@
                 card.className = 'post-card';
                 card.innerHTML = `
                     <div class="media-container ${post.unlocked ? '' : 'locked'}">
-                        <img src="${post.media}">
+                        ${renderMediaHTML(post.media, post.unlocked)}
                         ${!post.unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function processTip() {
+            const amount = document.getElementById('tip-amount').value || 1000;
+            closeModal('tip-modal');
+            payWithPaystack(amount, `Tip for ${activeCreatorForTip}`);
         }
 
         async function createPost() {
@@ -336,14 +431,14 @@
             }
         }
 
-        function payWithPaystack(price) {
+        function payWithPaystack(price, customNote) {
             const pubKey = localStorage.getItem('paystack_pub_key') || 'pk_live_e28e80eb3c55079272d529568d6';
             let handler = PaystackPop.setup({
                 key: pubKey,
                 email: 'supporter@homestrip.ng',
                 amount: price * 100,
                 currency: 'NGN',
-                callback: function(response){ alert('Payment successful! Ref: ' + response.reference); },
+                callback: function(response){ alert((customNote || 'Payment') + ' successful! Ref: ' + response.reference); },
                 onClose: function(){ alert('Canceled.'); }
             });
             handler.openIframe();
