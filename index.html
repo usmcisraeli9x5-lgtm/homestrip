@@ -1,159 +1,264 @@
-<!DOCTYPE html>  
-<html lang="en">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Home Strip - Premier Creator Platform</title>  
-    <script src="https://js.paystack.co/v1/inline.js"></script>  
-    <style>  
-        :root {  
-            --bg-dark: #0a0a0c;  
-            --card-bg: #141419;  
-            --accent-pink: #ff2a6d;  
-            --accent-cyan: #05d9e8;  
-            --text-light: #f0f0f5;  
-            --text-muted: #8a8a9e;  
-            --border-color: #262633;  
-        }  
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }  
-        body { background-color: var(--bg-dark); color: var(--text-light); padding-bottom: 70px; }  
-        header { position: sticky; top: 0; background-color: rgba(20, 20, 25, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }  
-        .logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(45deg, var(--accent-pink), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 1px; }  
-        .badge-18 { background-color: var(--accent-pink); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }  
-        .container { max-width: 500px; margin: 0 auto; padding: 16px; }  
-        .modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }  
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 100%; max-width: 400px; text-align: center; }  
-        .modal-title { font-size: 1.4rem; color: var(--accent-pink); margin-bottom: 12px; }  
-        .modal-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4; }  
-        .form-group { margin-bottom: 16px; text-align: left; }  
-        label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }  
-        input[type="text"], input[type="email"], input[type="number"] { width: 100%; padding: 12px; background: #0d0d12; border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 0.95rem; outline: none; }  
-        input:focus { border-color: var(--accent-cyan); }  
-        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; text-align: left; }  
-        .checkbox-group input { margin-top: 3px; }  
-        .checkbox-group label { font-size: 0.82rem; color: var(--text-light); line-height: 1.3; }  
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }  
-        .btn-primary { background: linear-gradient(45deg, var(--accent-pink), #d60050); color: #fff; }  
-        .btn-secondary { background: var(--border-color); color: var(--text-light); margin-top: 8px; }  
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }  
-        .post-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }  
-        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; }  
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-pink); display: flex; align-items: center; justify-content: center; font-weight: bold; }  
-        .post-author { font-weight: 600; font-size: 0.95rem; }  
-        .post-handle { font-size: 0.8rem; color: var(--text-muted); }  
-        .media-container { position: relative; width: 100%; height: 280px; background: #1a1a22; display: flex; align-items: center; justify-content: center; overflow: hidden; }  
-        .media-blurred { width: 100%; height: 100%; object-fit: cover; filter: blur(25px); opacity: 0.6; }  
-        .media-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }  
-        .unlock-price { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 8px; }  
-        .post-caption { padding: 12px; font-size: 0.9rem; color: var(--text-light); }  
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 99; }  
-        .nav-item { color: var(--text-muted); font-size: 0.75rem; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }  
-        .nav-item.active { color: var(--accent-pink); }  
-        .tab-content { display: none; }  
-        .tab-content.active { display: block; }  
-        .info-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 16px; }  
-        .info-title { font-size: 1rem; color: var(--accent-cyan); margin-bottom: 8px; }  
-        .info-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }  
-        .revenue-badge { display: inline-block; background: rgba(5, 217, 232, 0.1); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-top: 8px; }  
-    </style>  
-</head>  
-<body>  
-    <header>  
-        <div class="logo">Home Strip</div>  
-        <div class="badge-18">18+ ONLY</div>  
-    </header>  
-    <div class="container">  
-        <div id="tab-feed" class="tab-content active">  
-            <div class="post-card">  
-                <div class="post-header">  
-                    <div class="avatar">A</div>  
-                    <div>  
-                        <div class="post-author">Amara Vibe</div>  
-                        <div class="post-handle">@amaravibe</div>  
-                    </div>  
-                </div>  
-                <div class="media-container" id="media-1">  
-                    <img src="https://picsum.photos/400/300?blur=10" class="media-blurred" alt="Locked Content">  
-                    <div class="media-overlay" id="overlay-1">  
-                        <div class="unlock-price">₦2,500</div>  
-                        <button class="btn btn-primary" onclick="payWithPaystack(2500, 'media-1', 'overlay-1')">Unlock Exclusive Video</button>  
-                    </div>  
-                </div>  
-                <div class="post-caption">Behind the scenes from my latest photoshoot session 🔞 Unlock to watch full 4K clip!</div>  
-            </div>  
-        </div>  
-        <div id="tab-studio" class="tab-content">  
-            <div class="info-card">  
-                <div class="info-title">Creator Earnings Hub</div>  
-                <div class="info-text">You keep <strong>90%</strong> of all subscriptions, direct tips, and media unlocks.</div>  
-                <div class="revenue-badge">90/10 Split Active</div>  
-            </div>  
-        </div>  
-        <div id="tab-settings" class="tab-content">  
-            <div class="info-card">  
-                <div class="info-title">Payment Integration (Paystack)</div>  
-                <div class="info-text">Enter your Paystack Public Key below to receive live NGN payouts.</div>  
-                <div class="form-group" style="margin-top: 12px;">  
-                    <label>Paystack Public Key (pk_live_...)</label>  
-                    <input type="text" id="paystack-key-input" placeholder="pk_live_xxxxxxxxxxxxxxxx">  
-                </div>  
-                <button class="btn btn-primary" onclick="saveKey()">Save Public Key</button>  
-            </div>  
-        </div>  
-    </div>  
-    <div class="nav-bar">  
-        <div class="nav-item active" onclick="switchTab('feed', this)"><span>🔥</span><span>Feed</span></div>  
-        <div class="nav-item" onclick="switchTab('studio', this)"><span>🎥</span><span>Studio</span></div>  
-        <div class="nav-item" onclick="switchTab('settings', this)"><span>⚙️</span><span>Settings</span></div>  
-    </div>  
-    <div class="modal" id="age-modal">  
-        <div class="modal-content">  
-            <div class="modal-title">18+ Age Verification</div>  
-            <div class="modal-desc">Welcome to <strong>Home Strip</strong>. This platform contains adult content intended strictly for adults.</div>  
-            <div class="checkbox-group">  
-                <input type="checkbox" id="age-check" onchange="toggleAgeBtn()">  
-                <label for="age-check">I confirm that I am at least 18 years of age and agree to the terms.</label>  
-            </div>  
-            <button class="btn btn-primary" id="enter-btn" disabled onclick="confirmAge()">Enter Home Strip</button>  
-            <button class="btn btn-secondary" onclick="window.location.href='https://www.google.com'">Exit</button>  
-        </div>  
-    </div>  
-    <script>  
-        let paystackPublicKey = "";  
-        function saveKey() {  
-            const inputKey = document.getElementById('paystack-key-input').value.trim();  
-            if(inputKey) { paystackPublicKey = inputKey; alert('Paystack Key updated successfully!'); }   
-            else { alert('Please enter a valid Paystack Key.'); }  
-        }  
-        function toggleAgeBtn() { document.getElementById('enter-btn').disabled = !document.getElementById('age-check').checked; }  
-        function confirmAge() { document.getElementById('age-modal').style.display = 'none'; }  
-        function switchTab(tabName, element) {  
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));  
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));  
-            document.getElementById('tab-' + tabName).classList.add('active');  
-            element.classList.add('active');  
-        }  
-        function payWithPaystack(amountNGN, containerId, overlayId) {  
-            if (!paystackPublicKey.startsWith('pk_')) {  
-                alert('Please go to Settings and enter your live Paystack Public Key first!');  
-                return;  
-            }  
-            let handler = PaystackPop.setup({  
-                key: paystackPublicKey,  
-                email: 'customer@homestrip.ng',  
-                amount: amountNGN * 100,  
-                currency: 'NGN',  
-                ref: 'HS_' + Math.floor((Math.random() * 1000000000) + 1),  
-                callback: function(response) {  
-                    alert('Payment successful! Ref: ' + response.reference);  
-                    document.getElementById(overlayId).style.display = 'none';  
-                    const img = document.querySelector('#' + containerId + ' img');  
-                    if(img) { img.style.filter = 'none'; img.style.opacity = '1'; }  
-                },  
-                onClose: function() { alert('Transaction cancelled.'); }  
-            });  
-            handler.openIframe();  
-        }  
-    </script>  
-</body>  
-</html>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOME STRIP | Creator Platform</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <style>
+        :root {
+            --bg-color: #0c0a0f;
+            --card-bg: #16121f;
+            --primary: #ff0055;
+            --accent: #00f0ff;
+            --text-main: #ffffff;
+            --text-muted: #a0a0ab;
+            --border: #2a2238;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
+        
+        /* Top Navigation */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
+        .logo span { color: var(--accent); }
+        .badge-18 { background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+
+        /* Bottom Tab Bar */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item.active { color: var(--primary); }
+
+        /* Views */
+        .view { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .view.active { display: block; }
+
+        /* Post Card */
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .post-header { display: flex; align-items: center; padding: 14px; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .creator-info h4 { font-size: 14px; font-weight: 700; }
+        .creator-info span { font-size: 12px; color: var(--text-muted); }
+
+        .media-container { position: relative; width: 100%; height: 320px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
+        .media-container.locked img, .media-container.locked video { filter: blur(25px); transform: scale(1.1); }
+        
+        .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; }
+        .price-tag { font-size: 24px; font-weight: 800; color: var(--text-main); }
+        .btn-unlock { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; width: 80%; max-width: 250px; }
+        
+        .post-caption { padding: 14px; font-size: 14px; line-height: 1.4; }
+
+        /* Studio & Settings Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 14px; }
+        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
+
+        /* Age Modal */
+        #age-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; border-radius: 16px; text-align: center; max-width: 400px; width: 100%; }
+        .modal-content h2 { color: var(--primary); margin-bottom: 12px; font-size: 22px; }
+        .modal-content p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .btn-agree { background: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- Age Verification Modal -->
+    <div id="age-modal">
+        <div class="modal-content">
+            <h2>18+ Age Verification</h2>
+            <p>Welcome to Home Strip. This platform contains adult content intended strictly for adults.</p>
+            <button class="btn-agree" onclick="verifyAge()">I am 18 or Older - Enter</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">HOME<span>STRIP</span></div>
+        <div class="badge-18">18+ Only</div>
+    </header>
+
+    <!-- VIEWS -->
+    
+    <!-- Feed View -->
+    <div id="feed-view" class="view active">
+        <div id="posts-container">
+            <!-- Dynamic posts will load here -->
+        </div>
+    </div>
+
+    <!-- Studio View (Creator Upload) -->
+    <div id="studio-view" class="view">
+        <h2 style="margin-bottom: 20px;">Creator Studio</h2>
+        <div class="form-group">
+            <label>Creator Name / Handle</label>
+            <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
+        </div>
+        <div class="form-group">
+            <label>Post Caption</label>
+            <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your exclusive clip..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Unlock Price (₦)</label>
+            <input type="number" id="post-price" class="form-control" placeholder="2500">
+        </div>
+        <div class="form-group">
+            <label>Media Image URL (Paste link)</label>
+            <input type="text" id="post-media" class="form-control" placeholder="https://images.unsplash.com/...">
+        </div>
+        <button class="btn-primary" onclick="createPost()">Publish Content Live</button>
+    </div>
+
+    <!-- Settings View -->
+    <div id="settings-view" class="view">
+        <h2 style="margin-bottom: 20px;">Platform Settings</h2>
+        <div class="form-group">
+            <label>Paystack Public Key</label>
+            <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
+        </div>
+        <button class="btn-primary" onclick="savePublicKey()">Save Public Key</button>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('feed')">
+            <span>🔥</span> Feed
+        </button>
+        <button class="nav-item" onclick="switchTab('studio')">
+            <span>🎥</span> Studio
+        </button>
+        <button class="nav-item" onclick="switchTab('settings')">
+            <span>⚙️</span> Settings
+        </button>
+    </nav>
+
+    <script>
+        // Default sample post if storage is empty
+        let posts = JSON.parse(localStorage.getItem('homestrip_posts')) || [
+            {
+                name: "Amara Vibe",
+                handle: "@amaravibe",
+                caption: "Behind the scenes from my latest photoshoot session 🔞 Unlock to watch full 4K clip!",
+                price: 2500,
+                media: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+                unlocked: false
+            }
+        ];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(tab + '-view').classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(tab === 'feed') renderFeed();
+        }
+
+        function verifyAge() {
+            document.getElementById('age-modal').style.display = 'none';
+        }
+
+        function savePublicKey() {
+            const key = document.getElementById('paystack-key-input').value;
+            localStorage.setItem('paystack_pub_key', key);
+            alert('Paystack Public Key Saved Successfully!');
+        }
+
+        function renderFeed() {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = '';
+            
+            posts.forEach((post, index) => {
+                const initial = post.name.charAt(0).toUpperCase();
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div class="avatar">${initial}</div>
+                        <div class="creator-info">
+                            <h4>${post.name}</h4>
+                            <span>${post.handle || '@creator'}</span>
+                        </div>
+                    </div>
+                    <div class="media-container ${post.unlocked ? '' : 'locked'}">
+                        <img src="${post.media}" alt="Post Media">
+                        ${!post.unlocked ? `
+                            <div class="paywall-overlay">
+                                <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
+                                <button class="btn-unlock" onclick="payWithPaystack(${index})">Unlock Exclusive Content</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="post-caption">${post.caption}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function createPost() {
+            const name = document.getElementById('creator-name').value || "Creator";
+            const caption = document.getElementById('post-caption-input').value;
+            const price = document.getElementById('post-price').value || 1000;
+            const media = document.getElementById('post-media').value || "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600";
+
+            if(!caption) {
+                alert('Please enter a caption');
+                return;
+            }
+
+            const newPost = {
+                name: name,
+                handle: "@" + name.toLowerCase().replace(/\s+/g, ''),
+                caption: caption,
+                price: price,
+                media: media,
+                unlocked: false
+            };
+
+            posts.unshift(newPost);
+            localStorage.setItem('homestrip_posts', JSON.stringify(posts));
+            
+            // Clear inputs
+            document.getElementById('creator-name').value = '';
+            document.getElementById('post-caption-input').value = '';
+            document.getElementById('post-price').value = '';
+            document.getElementById('post-media').value = '';
+
+            // Switch to feed
+            switchTab('feed');
+        }
+
+        function payWithPaystack(index) {
+            const pubKey = localStorage.getItem('paystack_pub_key') || 'pk_live_e28e80eb3c55079272d529568d6';
+            const post = posts[index];
+            
+            let handler = PaystackPop.setup({
+                key: pubKey,
+                email: 'supporter@homestrip.ng',
+                amount: post.price * 100, // Paystack works in kobo
+                currency: 'NGN',
+                callback: function(response){
+                    alert('Payment successful! Reference: ' + response.reference);
+                    posts[index].unlocked = true;
+                    localStorage.setItem('homestrip_posts', JSON.stringify(posts));
+                    renderFeed();
+                },
+                onClose: function(){
+                    alert('Transaction window closed.');
+                }
+            });
+            handler.openIframe();
+        }
+
+        // Initial render on load
+        renderFeed();
+        // Load saved key if present
+        if(localStorage.getItem('paystack_pub_key')) {
+            document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
+        }
+    </script>
+</body>
+</html>
