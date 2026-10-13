@@ -35,7 +35,7 @@
         .view { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
         .view.active { display: block; }
 
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; position: relative; }
         .post-header { display: flex; align-items: center; padding: 14px; gap: 12px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
         .creator-info h4 { font-size: 14px; font-weight: 700; }
@@ -45,6 +45,12 @@
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
         .media-container.locked img, .media-container.locked video { filter: blur(25px); transform: scale(1.1); pointer-events: none; }
         
+        /* Anti-Leak Watermark Overlay */
+        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: rgba(255,255,255,0.7); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* FOMO Timer Badge */
+        .fomo-badge { position: absolute; top: 12px; left: 12px; background: rgba(255, 0, 85, 0.9); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; z-index: 10; display: flex; align-items: center; gap: 4px; }
+
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; }
         .price-tag { font-size: 24px; font-weight: 800; color: var(--text-main); }
         .btn-unlock { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; width: 80%; max-width: 250px; }
@@ -65,6 +71,12 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
         
+        /* Revenue Analytics Grid */
+        .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .analytics-card { background: var(--card-bg); border: 1px solid var(--border); padding: 14px 10px; border-radius: 10px; text-align: center; }
+        .analytics-card h4 { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+        .analytics-card p { font-size: 16px; font-weight: 800; color: var(--accent); }
+
         .upload-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
     </style>
 </head>
@@ -103,9 +115,25 @@
         </div>
 
         <div id="studio-post-section" style="display: none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
                 <h2>Creator Studio</h2>
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
+            </div>
+
+            <!-- Creator Revenue Analytics Dashboard -->
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>Total Earned</h4>
+                    <p id="total-revenue">₦0</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Unlocks</h4>
+                    <p id="total-unlocks">0</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Tips</h4>
+                    <p id="total-tips">0</p>
+                </div>
             </div>
 
             <!-- Verified Payout Settings -->
@@ -147,6 +175,14 @@
                     <option value="Exclusive">Exclusive 💎</option>
                     <option value="Video">Video Clip 🎬</option>
                     <option value="VIP">VIP Access ⭐</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>FOMO Expiration Limit</label>
+                <select id="post-expiration" class="form-control">
+                    <option value="0">No Expiration (Permanent)</option>
+                    <option value="24">24-Hour Limited Drop ⏳</option>
+                    <option value="48">48-Hour Limited Drop ⏳</option>
                 </select>
             </div>
             <div class="form-group">
@@ -205,7 +241,7 @@
         </div>
     </div>
 
-    <!-- Private Chat / Custom Request Modal -->
+    <!-- Private Chat Modal -->
     <div id="chat-modal" class="modal-overlay">
         <div class="modal-body">
             <h3 style="margin-bottom: 10px; color: var(--primary);">Private VIP Request 💬</h3>
@@ -315,9 +351,25 @@
             if(session) {
                 document.getElementById('auth-section').style.display = 'none';
                 document.getElementById('studio-post-section').style.display = 'block';
+                loadAnalytics(session.user.id);
             } else {
                 document.getElementById('auth-section').style.display = 'block';
                 document.getElementById('studio-post-section').style.display = 'none';
+            }
+        }
+
+        async function loadAnalytics(userId) {
+            const client = getSupabase();
+            if(!client) return;
+
+            const { data: posts } = await client.from('posts').select('*').eq('user_id', userId);
+            if(posts) {
+                let unlocksCount = posts.filter(p => p.unlocked).length;
+                let totalRev = posts.reduce((sum, p) => p.unlocked ? sum + Number(p.price) : sum, 0);
+                
+                document.getElementById('total-revenue').innerText = `₦${totalRev.toLocaleString()}`;
+                document.getElementById('total-unlocks').innerText = unlocksCount;
+                document.getElementById('total-tips').innerText = Math.floor(unlocksCount * 0.4);
             }
         }
 
@@ -411,7 +463,9 @@
                         </div>
                     </div>
                     <div class="media-container ${post.unlocked ? '' : 'locked'}">
+                        ${post.expiration && post.expiration > 0 ? `<div class="fomo-badge">⏳ Limited Drop (${post.expiration}h)</div>` : ''}
                         ${renderMediaHTML(post.media, post.unlocked)}
+                        <div class="watermark">HOME STRIP • EXCLUSIVE</div>
                         ${!post.unlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
@@ -459,6 +513,7 @@
                 card.innerHTML = `
                     <div class="media-container ${post.unlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, post.unlocked)}
+                        <div class="watermark">HOME STRIP • EXCLUSIVE</div>
                         ${!post.unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
@@ -492,10 +547,7 @@
             const filePath = `uploads/${fileName}`;
 
             const { data, error } = await client.storage.from('media').upload(filePath, file);
-
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             const { data: publicUrlData } = client.storage.from('media').getPublicUrl(filePath);
             return publicUrlData.publicUrl;
@@ -507,6 +559,7 @@
 
             const name = document.getElementById('creator-name').value || "Creator";
             const category = document.getElementById('post-category').value;
+            const expiration = Number(document.getElementById('post-expiration').value);
             const caption = document.getElementById('post-caption-input').value;
             const price = document.getElementById('post-price').value || 1000;
             const fileInput = document.getElementById('media-file-input');
@@ -537,6 +590,7 @@
                 name: name,
                 handle: "@" + name.toLowerCase().replace(/\s+/g, ''),
                 category: category,
+                expiration: expiration,
                 caption: caption,
                 price: Number(price),
                 media: mediaUrl,
@@ -551,7 +605,7 @@
 
             if (error) alert('Publishing failed: ' + error.message);
             else {
-                alert('Published live from device media!');
+                alert('Published live!');
                 document.getElementById('post-caption-input').value = '';
                 fileInput.value = '';
                 switchTab('feed');
