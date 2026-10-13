@@ -78,6 +78,12 @@
         .request-item p { font-size: 12px; color: var(--text-main); margin-bottom: 6px; }
         .request-item span { font-size: 10px; color: var(--text-muted); }
 
+        /* Modern App Settings Styles */
+        .settings-menu { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+        .settings-item { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item span { color: var(--text-muted); font-size: 13px; }
+
         .upload-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
     </style>
 </head>
@@ -107,6 +113,14 @@
         </div>
     </div>
 
+    <!-- Messages / Inbox View -->
+    <div id="messages-view" class="view">
+        <h2 style="margin-bottom: 15px;">My Messages & Requests 💬</h2>
+        <div id="messages-container">
+            <p style="text-align: center; color: var(--text-muted); padding: 30px;">No private messages or custom requests yet.</p>
+        </div>
+    </div>
+
     <div id="studio-view" class="view">
         <div id="auth-section">
             <h2 style="margin-bottom: 20px;">Creator Access</h2>
@@ -128,7 +142,6 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
             </div>
 
-            <!-- Revenue Analytics Grid -->
             <div class="analytics-grid">
                 <div class="analytics-card">
                     <h4>Total Earned</h4>
@@ -144,7 +157,6 @@
                 </div>
             </div>
 
-            <!-- VIP Requests & Inbox Panel -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">VIP Requests Inbox 📩</h3>
                 <div id="requests-inbox-container">
@@ -152,7 +164,6 @@
                 </div>
             </div>
 
-            <!-- Verified Payout Settings -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
                 <div class="form-group">
@@ -220,23 +231,50 @@
         </div>
     </div>
 
-    <div id="profile-view" class="view">
-        <div id="profile-header-container"></div>
-        <h3>Published Content</h3>
-        <div id="profile-posts-container" style="margin-top: 15px;"></div>
+    <!-- Modern App Settings View -->
+    <div id="settings-view" class="view">
+        <h2 style="margin-bottom: 20px;">Settings & Support</h2>
+        
+        <div class="settings-menu">
+            <div class="settings-item" onclick="openPolicyModal('terms')">
+                <span>Terms & Conditions</span>
+                <span>›</span>
+            </div>
+            <div class="settings-item" onclick="openPolicyModal('privacy')">
+                <span>Privacy Policy</span>
+                <span>›</span>
+            </div>
+            <div class="settings-item" onclick="openPolicyModal('compliance')">
+                <span>18+ Adult Compliance (2257)</span>
+                <span>›</span>
+            </div>
+            <div class="settings-item" onclick="openPolicyModal('support')">
+                <span>Help & Support</span>
+                <span>›</span>
+            </div>
+        </div>
+
+        <h3 style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px; margin-top: 25px;">Developer Configuration</h3>
+        <div class="settings-menu" style="padding: 16px;">
+            <div class="form-group">
+                <label>Supabase Publishable Key</label>
+                <input type="text" id="supabase-key-input" class="form-control" placeholder="sb_publishable_...">
+            </div>
+            <div class="form-group">
+                <label>Paystack Public Key</label>
+                <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
+            </div>
+            <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
+        </div>
     </div>
 
-    <div id="settings-view" class="view">
-        <h2 style="margin-bottom: 20px;">Platform Configuration</h2>
-        <div class="form-group">
-            <label>Supabase Publishable Key</label>
-            <input type="text" id="supabase-key-input" class="form-control" placeholder="sb_publishable_...">
+    <!-- Policy / Info Modal -->
+    <div id="policy-modal" class="modal-overlay">
+        <div class="modal-body" style="max-width: 450px; text-align: left;">
+            <h3 id="modal-title" style="margin-bottom: 12px; color: var(--accent);">Policy</h3>
+            <p id="modal-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; max-height: 250px; overflow-y: auto;"></p>
+            <button class="btn-primary" onclick="closeModal('policy-modal')">Close</button>
         </div>
-        <div class="form-group">
-            <label>Paystack Public Key</label>
-            <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
-        </div>
-        <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
     </div>
 
     <!-- Tip Modal -->
@@ -281,6 +319,9 @@
         <button class="nav-item" onclick="switchTab('unlocked')">
             <span>🔓</span> Unlocked
         </button>
+        <button class="nav-item" onclick="switchTab('messages')">
+            <span>💬</span> Messages
+        </button>
         <button class="nav-item" onclick="switchTab('studio')">
             <span>🎥</span> Studio
         </button>
@@ -296,6 +337,7 @@
         let currentCategoryFilter = 'All';
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
+        let userMessages = JSON.parse(localStorage.getItem('user_messages') || '[]');
 
         function getSupabase() {
             if (supabaseClient) return supabaseClient;
@@ -315,6 +357,7 @@
             
             if(tab === 'feed') renderFeed();
             if(tab === 'unlocked') renderUnlockedLibrary();
+            if(tab === 'messages') renderMessagesInbox();
             if(tab === 'studio') checkAuthStatus();
         }
 
@@ -328,6 +371,24 @@
             supabaseClient = null;
             alert('Settings saved successfully!');
             renderFeed();
+        }
+
+        function openPolicyModal(type) {
+            const titles = {
+                terms: "Terms & Conditions",
+                privacy: "Privacy Policy",
+                compliance: "18+ Adult Content Compliance",
+                support: "Help & Support"
+            };
+            const texts = {
+                terms: "By accessing Home Strip, you agree to abide by all platform creator guidelines, payment rules, and anti-piracy protection protocols. All sales of digital content are final.",
+                privacy: "We respect your privacy. Encrypted database records and secure tokenized links ensure your browsing and transaction history remain protected.",
+                compliance: "Home Strip is strictly restricted to adults aged 18 and older. All creators and users must verify their age. Content depicting minors or non-consensual media is strictly prohibited and instantly banned.",
+                support: "Need assistance with payouts, account setup, or technical configuration? Contact our platform administrators directly via support@homestrip.ng."
+            };
+            document.getElementById('modal-title').innerText = titles[type];
+            document.getElementById('modal-content').innerText = texts[type];
+            openModal('policy-modal');
         }
 
         async function signUpCreator() {
@@ -415,6 +476,27 @@
                     <span>From Fan • Ref: ${req.reference || 'Paid'}</span>
                 `;
                 container.appendChild(item);
+            });
+        }
+
+        function renderMessagesInbox() {
+            const container = document.getElementById('messages-container');
+            if(userMessages.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No private messages or custom requests yet.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            userMessages.forEach(msg => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.style.padding = '16px';
+                card.innerHTML = `
+                    <h4 style="color:var(--accent); font-size:14px; margin-bottom:6px;">💬 Request to ${msg.creator}</h4>
+                    <p style="font-size:13px; color:var(--text-main); margin-bottom:8px;">"${msg.message}"</p>
+                    <span style="font-size:11px; color:var(--text-muted);">Paid: ₦${Number(msg.price).toLocaleString()} • Ref: ${msg.ref}</span>
+                `;
+                container.appendChild(card);
             });
         }
 
@@ -618,6 +700,9 @@
             
             payWithPaystack(price, `Private Request for ${activeCreatorForAction}`, null, async (ref) => {
                 const client = getSupabase();
+                userMessages.push({ creator: activeCreatorForAction, message: message, price: price, ref: ref });
+                localStorage.setItem('user_messages', JSON.stringify(userMessages));
+
                 if(client) {
                     await client.from('requests').insert([{
                         creator_name: activeCreatorForAction,
@@ -626,6 +711,7 @@
                         reference: ref
                     }]);
                 }
+                alert('Request sent & saved to Messages inbox!');
             });
         }
 
