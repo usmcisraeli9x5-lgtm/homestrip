@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOME STRIP | Creator Platform</title>
+    <!-- Paystack SDK -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #0c0a0f;
@@ -18,22 +21,20 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
         
-        /* Top Navigation */
+        /* Navigation */
         header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
         .logo span { color: var(--accent); }
         .badge-18 { background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
 
-        /* Bottom Tab Bar */
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
         .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-item.active { color: var(--primary); }
 
-        /* Views */
         .view { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
         .view.active { display: block; }
 
-        /* Post Card */
+        /* Post Layout */
         .post-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
         .post-header { display: flex; align-items: center; padding: 14px; gap: 12px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
@@ -41,8 +42,8 @@
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
         .media-container { position: relative; width: 100%; height: 320px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
-        .media-container.locked img, .media-container.locked video { filter: blur(25px); transform: scale(1.1); }
+        .media-container img { width: 100%; height: 100%; object-fit: cover; }
+        .media-container.locked img { filter: blur(25px); transform: scale(1.1); }
         
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; }
         .price-tag { font-size: 24px; font-weight: 800; color: var(--text-main); }
@@ -50,7 +51,7 @@
         
         .post-caption { padding: 14px; font-size: 14px; line-height: 1.4; }
 
-        /* Studio & Settings Forms */
+        /* Forms */
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
         .form-control { width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 14px; }
@@ -66,7 +67,7 @@
 </head>
 <body>
 
-    <!-- Age Verification Modal -->
+    <!-- Age Verification -->
     <div id="age-modal">
         <div class="modal-content">
             <h2>18+ Age Verification</h2>
@@ -81,48 +82,48 @@
         <div class="badge-18">18+ Only</div>
     </header>
 
-    <!-- VIEWS -->
-    
-    <!-- Feed View -->
+    <!-- Views -->
     <div id="feed-view" class="view active">
         <div id="posts-container">
-            <!-- Dynamic posts will load here -->
+            <p style="text-align: center; color: var(--text-muted); padding: 20px;">Loading global feed...</p>
         </div>
     </div>
 
-    <!-- Studio View (Creator Upload) -->
     <div id="studio-view" class="view">
         <h2 style="margin-bottom: 20px;">Creator Studio</h2>
         <div class="form-group">
-            <label>Creator Name / Handle</label>
+            <label>Creator Name</label>
             <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
         </div>
         <div class="form-group">
             <label>Post Caption</label>
-            <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your exclusive clip..."></textarea>
+            <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your clip..."></textarea>
         </div>
         <div class="form-group">
             <label>Unlock Price (₦)</label>
             <input type="number" id="post-price" class="form-control" placeholder="2500">
         </div>
         <div class="form-group">
-            <label>Media Image URL (Paste link)</label>
+            <label>Media Image URL</label>
             <input type="text" id="post-media" class="form-control" placeholder="https://images.unsplash.com/...">
         </div>
         <button class="btn-primary" onclick="createPost()">Publish Content Live</button>
     </div>
 
-    <!-- Settings View -->
     <div id="settings-view" class="view">
-        <h2 style="margin-bottom: 20px;">Platform Settings</h2>
+        <h2 style="margin-bottom: 20px;">Platform Configuration</h2>
+        <div class="form-group">
+            <label>Supabase Publishable Key</label>
+            <input type="text" id="supabase-key-input" class="form-control" placeholder="eyJhbGci...">
+        </div>
         <div class="form-group">
             <label>Paystack Public Key</label>
             <input type="text" id="paystack-key-input" class="form-control" placeholder="pk_live_...">
         </div>
-        <button class="btn-primary" onclick="savePublicKey()">Save Public Key</button>
+        <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
     </div>
 
-    <!-- Navigation Bar -->
+    <!-- Nav Bar -->
     <nav class="nav-bar">
         <button class="nav-item active" onclick="switchTab('feed')">
             <span>🔥</span> Feed
@@ -136,17 +137,17 @@
     </nav>
 
     <script>
-        // Default sample post if storage is empty
-        let posts = JSON.parse(localStorage.getItem('homestrip_posts')) || [
-            {
-                name: "Amara Vibe",
-                handle: "@amaravibe",
-                caption: "Behind the scenes from my latest photoshoot session 🔞 Unlock to watch full 4K clip!",
-                price: 2500,
-                media: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
-                unlocked: false
+        const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
+        let supabaseClient = null;
+
+        function getSupabase() {
+            if (supabaseClient) return supabaseClient;
+            const key = localStorage.getItem('supabase_pub_key');
+            if (key) {
+                supabaseClient = supabase.createClient(SUPABASE_URL, key);
             }
-        ];
+            return supabaseClient;
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -161,18 +162,49 @@
             document.getElementById('age-modal').style.display = 'none';
         }
 
-        function savePublicKey() {
-            const key = document.getElementById('paystack-key-input').value;
-            localStorage.setItem('paystack_pub_key', key);
-            alert('Paystack Public Key Saved Successfully!');
+        function saveSettings() {
+            const sbKey = document.getElementById('supabase-key-input').value;
+            const psKey = document.getElementById('paystack-key-input').value;
+            
+            if(sbKey) localStorage.setItem('supabase_pub_key', sbKey);
+            if(psKey) localStorage.setItem('paystack_pub_key', psKey);
+            
+            supabaseClient = null;
+            alert('Settings saved successfully!');
+            renderFeed();
         }
 
-        function renderFeed() {
+        async function renderFeed() {
             const container = document.getElementById('posts-container');
+            const client = getSupabase();
+
+            if (!client) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding: 30px; background: var(--card-bg); border-radius: 12px;">
+                        <h3>Backend Connection Needed</h3>
+                        <p style="color:var(--text-muted); font-size:13px; margin: 10px 0;">Go to Settings and paste your Supabase Publishable Key to load global posts.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 20px;">Fetching global posts...</p>`;
+
+            const { data: posts, error } = await client.from('posts').select('*').order('id', { ascending: false });
+
+            if (error) {
+                container.innerHTML = `<p style="color:red; text-align:center;">Error loading posts: ${error.message}</p>`;
+                return;
+            }
+
+            if (!posts || posts.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color: var(--text-muted); padding: 40px;">No posts published yet. Go to Studio to publish the first post!</p>`;
+                return;
+            }
+
             container.innerHTML = '';
-            
-            posts.forEach((post, index) => {
-                const initial = post.name.charAt(0).toUpperCase();
+            posts.forEach(post => {
+                const initial = post.name ? post.name.charAt(0).toUpperCase() : 'C';
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
@@ -180,7 +212,7 @@
                         <div class="avatar">${initial}</div>
                         <div class="creator-info">
                             <h4>${post.name}</h4>
-                            <span>${post.handle || '@creator'}</span>
+                            <span>${post.handle}</span>
                         </div>
                     </div>
                     <div class="media-container ${post.unlocked ? '' : 'locked'}">
@@ -188,7 +220,7 @@
                         ${!post.unlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
-                                <button class="btn-unlock" onclick="payWithPaystack(${index})">Unlock Exclusive Content</button>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price})">Unlock Exclusive Content</button>
                             </div>
                         ` : ''}
                     </div>
@@ -198,7 +230,14 @@
             });
         }
 
-        function createPost() {
+        async function createPost() {
+            const client = getSupabase();
+            if (!client) {
+                alert('Please configure your Supabase Publishable Key in Settings first!');
+                switchTab('settings');
+                return;
+            }
+
             const name = document.getElementById('creator-name').value || "Creator";
             const caption = document.getElementById('post-caption-input').value;
             const price = document.getElementById('post-price').value || 1000;
@@ -213,52 +252,51 @@
                 name: name,
                 handle: "@" + name.toLowerCase().replace(/\s+/g, ''),
                 caption: caption,
-                price: price,
+                price: Number(price),
                 media: media,
                 unlocked: false
             };
 
-            posts.unshift(newPost);
-            localStorage.setItem('homestrip_posts', JSON.stringify(posts));
-            
-            // Clear inputs
-            document.getElementById('creator-name').value = '';
-            document.getElementById('post-caption-input').value = '';
-            document.getElementById('post-price').value = '';
-            document.getElementById('post-media').value = '';
+            const { error } = await client.from('posts').insert([newPost]);
 
-            // Switch to feed
-            switchTab('feed');
+            if (error) {
+                alert('Publishing failed: ' + error.message);
+            } else {
+                alert('Published live globally!');
+                document.getElementById('creator-name').value = '';
+                document.getElementById('post-caption-input').value = '';
+                document.getElementById('post-price').value = '';
+                document.getElementById('post-media').value = '';
+                switchTab('feed');
+            }
         }
 
-        function payWithPaystack(index) {
+        function payWithPaystack(price) {
             const pubKey = localStorage.getItem('paystack_pub_key') || 'pk_live_e28e80eb3c55079272d529568d6';
-            const post = posts[index];
             
             let handler = PaystackPop.setup({
                 key: pubKey,
                 email: 'supporter@homestrip.ng',
-                amount: post.price * 100, // Paystack works in kobo
+                amount: price * 100,
                 currency: 'NGN',
                 callback: function(response){
                     alert('Payment successful! Reference: ' + response.reference);
-                    posts[index].unlocked = true;
-                    localStorage.setItem('homestrip_posts', JSON.stringify(posts));
-                    renderFeed();
                 },
                 onClose: function(){
-                    alert('Transaction window closed.');
+                    alert('Transaction canceled.');
                 }
             });
             handler.openIframe();
         }
 
-        // Initial render on load
-        renderFeed();
-        // Load saved key if present
+        // Initialize on load
+        if(localStorage.getItem('supabase_pub_key')) {
+            document.getElementById('supabase-key-input').value = localStorage.getItem('supabase_pub_key');
+        }
         if(localStorage.getItem('paystack_pub_key')) {
             document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
         }
+        renderFeed();
     </script>
 </body>
 </html>
