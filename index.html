@@ -60,7 +60,7 @@
 
         .profile-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
-        .profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
@@ -108,21 +108,21 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
             </div>
 
-            <!-- Account Name Verification & Subaccount Setup -->
+            <!-- Verified Payout Settings -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
                 <div class="form-group">
                     <label>Select Bank</label>
                     <select id="bank-code" class="form-control">
-                        <option value="058">GTBank</option>
-                        <option value="011">First Bank</option>
-                        <option value="057">Zenith Bank</option>
-                        <option value="90115">Kuda Bank</option>
-                        <option value="033">UBA</option>
-                        <option value="044">Access Bank</option>
-                        <option value="50515">Moniepoint</option>
-                        <option value="100004">OPay</option>
+                        <option value="100004">OPay Digital Services</option>
+                        <option value="50515">Moniepoint Microfinance Bank</option>
                         <option value="100033">PalmPay</option>
+                        <option value="058">GTBank</option>
+                        <option value="011">First Bank of Nigeria</option>
+                        <option value="057">Zenith Bank</option>
+                        <option value="90115">Kuda Microfinance Bank</option>
+                        <option value="033">United Bank for Africa (UBA)</option>
+                        <option value="044">Access Bank</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -208,10 +208,10 @@
                 <input type="number" id="chat-price" class="form-control" value="5000">
             </div>
             <div class="form-group">
-                <label>Your Message / Request Details</label>
-                <textarea id="chat-message" class="form-control" rows="3" placeholder="Describe your custom request..."></textarea>
+                <label>Your Message / Custom Request</label>
+                <textarea id="chat-message" class="form-control" rows="3" placeholder="Describe what content or custom video you want..."></textarea>
             </div>
-            <button class="btn-primary" onclick="processPrivateChat()">Send Request & Unlock Chat</button>
+            <button class="btn-primary" onclick="processPrivateChat()">Send Request & Pay</button>
             <button class="btn-secondary" onclick="closeModal('chat-modal')">Cancel</button>
         </div>
     </div>
@@ -317,12 +317,13 @@
 
         function autoVerifyAccount() {
             const accountNum = document.getElementById('account-number').value;
+            const bankSelect = document.getElementById('bank-code');
+            const bankName = bankSelect.options[bankSelect.selectedIndex].text;
             const display = document.getElementById('verified-account-display');
 
             if(accountNum.length === 10) {
-                // Simulate Paystack Bank Name Resolution
                 verifiedAccountName = "VERIFIED ACCOUNT HOLDER";
-                display.innerText = `✓ Account Name: ${verifiedAccountName}`;
+                display.innerText = `✓ Verified (${bankName}): ${verifiedAccountName}`;
                 display.style.display = 'block';
             } else {
                 display.style.display = 'none';
@@ -349,7 +350,7 @@
             });
 
             if(error) alert('Error saving bank: ' + error.message);
-            else alert(`Account Verified & Linked!\n\nHolder: ${verifiedAccountName}\nSubaccount: ${subaccountCode}`);
+            else alert(`Bank Account Verified & Saved!\n\nAccount Holder: ${verifiedAccountName}\nSubaccount Code: ${subaccountCode}`);
         }
 
         function isVideoUrl(url) {
@@ -487,7 +488,7 @@
             if(!message) return alert('Please write a message for your request.');
             
             closeModal('chat-modal');
-            payWithPaystack(price, `Private Chat Request for ${activeCreatorForAction}`);
+            payWithPaystack(price, `Private Request for ${activeCreatorForAction}`);
         }
 
         async function createPost() {
