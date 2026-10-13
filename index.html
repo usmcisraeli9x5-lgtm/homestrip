@@ -64,6 +64,8 @@
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
+        
+        .upload-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
     </style>
 </head>
 <body>
@@ -106,7 +108,7 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutCreator()">Log Out</button>
             </div>
 
-            <!-- Verified Payout Settings with Account Name Confirmation -->
+            <!-- Verified Payout Settings -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
                 <div class="form-group">
@@ -155,11 +157,15 @@
                 <label>Unlock Price (₦)</label>
                 <input type="number" id="post-price" class="form-control" placeholder="2500">
             </div>
+
+            <!-- Direct File Upload Field -->
             <div class="form-group">
-                <label>Media URL (Image or MP4 Video)</label>
-                <input type="text" id="post-media" class="form-control" placeholder="https://... image or .mp4 video link">
+                <label>Upload Media (Image or Video from Device)</label>
+                <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
+                <div id="upload-status" class="upload-status">Uploading media file... Please wait.</div>
             </div>
-            <button class="btn-primary" onclick="createPost()">Publish Content Live</button>
+
+            <button class="btn-primary" id="publish-btn" onclick="createPost()">Publish Content Live</button>
         </div>
     </div>
 
@@ -479,6 +485,22 @@
             payWithPaystack(price, `Private Request for ${activeCreatorForAction}`);
         }
 
+        async function uploadFileToSupabase(file) {
+            const client = getSupabase();
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const filePath = `uploads/${fileName}`;
+
+            const { data, error } = await client.storage.from('media').upload(filePath, file);
+
+            if (error) {
+                throw error;
+            }
+
+            const { data: publicUrlData } = client.storage.from('media').getPublicUrl(filePath);
+            return publicUrlData.publicUrl;
+        }
+
         async function createPost() {
             const client = getSupabase();
             const { data: { session } } = await client.auth.getSession();
@@ -487,9 +509,28 @@
             const category = document.getElementById('post-category').value;
             const caption = document.getElementById('post-caption-input').value;
             const price = document.getElementById('post-price').value || 1000;
-            const media = document.getElementById('post-media').value || "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600";
+            const fileInput = document.getElementById('media-file-input');
+            const uploadStatus = document.getElementById('upload-status');
+            const publishBtn = document.getElementById('publish-btn');
 
             if(!caption) return alert('Enter a caption');
+            if(!fileInput.files || fileInput.files.length === 0) return alert('Please select a photo or video from your device.');
+
+            let mediaUrl = "";
+            
+            try {
+                uploadStatus.style.display = 'block';
+                publishBtn.disabled = true;
+                publishBtn.innerText = "Uploading Media...";
+
+                const file = fileInput.files[0];
+                mediaUrl = await uploadFileToSupabase(file);
+            } catch(err) {
+                uploadStatus.style.display = 'none';
+                publishBtn.disabled = false;
+                publishBtn.innerText = "Publish Content Live";
+                return alert('File upload failed: ' + err.message);
+            }
 
             const newPost = {
                 user_id: session ? session.user.id : null,
@@ -498,16 +539,21 @@
                 category: category,
                 caption: caption,
                 price: Number(price),
-                media: media,
+                media: mediaUrl,
                 unlocked: false
             };
 
             const { error } = await client.from('posts').insert([newPost]);
 
+            uploadStatus.style.display = 'none';
+            publishBtn.disabled = false;
+            publishBtn.innerText = "Publish Content Live";
+
             if (error) alert('Publishing failed: ' + error.message);
             else {
-                alert('Published live!');
+                alert('Published live from device media!');
                 document.getElementById('post-caption-input').value = '';
+                fileInput.value = '';
                 switchTab('feed');
             }
         }
