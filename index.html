@@ -132,7 +132,7 @@
         </div>
     </div>
 
-    <!-- Creator Profile View (Restored & Fixed) -->
+    <!-- Creator Profile View -->
     <div id="profile-view" class="view">
         <div id="profile-header-container"></div>
         <h3 style="margin-top: 20px;">Published Content</h3>
@@ -337,19 +337,19 @@
     </div>
 
     <nav class="nav-bar">
-        <button class="nav-item active" onclick="switchTab('feed')">
+        <button class="nav-item" id="nav-feed" onclick="switchTab('feed')">
             <span>🔥</span> Feed
         </button>
-        <button class="nav-item" onclick="switchTab('unlocked')">
+        <button class="nav-item" id="nav-unlocked" onclick="switchTab('unlocked')">
             <span>👑</span> Library
         </button>
-        <button class="nav-item" onclick="switchTab('messages')">
+        <button class="nav-item" id="nav-messages" onclick="switchTab('messages')">
             <span>💬</span> Chat
         </button>
-        <button class="nav-item" onclick="switchTab('studio')">
+        <button class="nav-item" id="nav-studio" onclick="switchTab('studio')">
             <span>🎥</span> Studio
         </button>
-        <button class="nav-item" onclick="switchTab('settings')">
+        <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
             <span>⚙️</span> Settings
         </button>
     </nav>
@@ -379,9 +379,14 @@
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            document.getElementById(tab + '-view').classList.add('active');
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            const targetView = document.getElementById(tab + '-view');
+            const targetNav = document.getElementById('nav-' + tab);
+
+            if(targetView) targetView.classList.add('active');
+            if(targetNav) targetNav.classList.add('active');
             
+            localStorage.setItem('last_active_tab', tab);
+
             if(tab === 'feed') renderFeed();
             if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'messages') renderChatInbox();
@@ -847,7 +852,10 @@
 
         if(localStorage.getItem('supabase_pub_key')) document.getElementById('supabase-key-input').value = localStorage.getItem('supabase_pub_key');
         if(localStorage.getItem('paystack_pub_key')) document.getElementById('paystack-key-input').value = localStorage.getItem('paystack_pub_key');
-        renderFeed();
+        
+        // Restore last active tab on page load
+        const lastTab = localStorage.getItem('last_active_tab') || 'feed';
+        switchTab(lastTab);
     </script>
 </body>
 </html>
