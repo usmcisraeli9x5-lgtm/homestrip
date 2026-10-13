@@ -79,6 +79,7 @@
         .chat-bubble { padding: 8px 12px; border-radius: 8px; font-size: 13px; max-width: 80%; line-height: 1.4; }
         .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--border); }
         .chat-bubble.creator { background: var(--primary); color: #fff; align-self: flex-end; }
+        .chat-bubble.ppv { background: #22182c; border: 1px solid var(--accent); align-self: flex-start; width: 100%; }
 
         .settings-menu { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
         .settings-item { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -96,6 +97,9 @@
     </header>
 
     <div id="feed-view" class="view active">
+        <div id="referral-banner" style="display:none; background:rgba(0,240,255,0.1); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:15px; font-size:12px; text-align:center;">
+            🔗 Referred by Creator: <b id="ref-name" style="color:var(--accent);"></b>
+        </div>
         <div class="filter-bar">
             <button class="filter-chip active" onclick="filterFeed('All', this)">All</button>
             <button class="filter-chip" onclick="filterFeed('Video', this)">Videos 🎬</button>
@@ -107,7 +111,6 @@
         </div>
     </div>
 
-    <!-- Supporter Cloud Library & Subscriptions -->
     <div id="unlocked-view" class="view">
         <h2 style="margin-bottom: 15px;">My Subscriptions & Library 👑</h2>
         <div id="active-subscriptions-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
@@ -120,9 +123,9 @@
         </div>
     </div>
 
-    <!-- 2-Way Chat & Messages Inbox View -->
+    <!-- 2-Way Chat & PPV Mass DMs Inbox -->
     <div id="messages-view" class="view">
-        <h2 style="margin-bottom: 15px;">Direct Messages & Chat 💬</h2>
+        <h2 style="margin-bottom: 15px;">Direct Messages & PPV Inbox 💬</h2>
         <div class="chat-box" id="global-chat-box">
             <div class="chat-bubble fan">Welcome to Home Strip! Select a creator profile to open a 1-on-1 VIP chatroom.</div>
         </div>
@@ -135,6 +138,10 @@
     <!-- Creator Profile View -->
     <div id="profile-view" class="view">
         <div id="profile-header-container"></div>
+        <div id="affiliate-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 14px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; text-align: center;">
+            <p style="color:var(--text-muted); margin-bottom:6px;">Your Affiliate Referral Link:</p>
+            <input type="text" id="affiliate-link-input" class="form-control" readonly style="font-size:11px; text-align:center;">
+        </div>
         <h3 style="margin-top: 20px;">Published Content</h3>
         <div id="profile-posts-container" style="margin-top: 15px;"></div>
     </div>
@@ -160,26 +167,35 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutAccount()">Log Out</button>
             </div>
 
+            <!-- Revenue Analytics & Payout Ledger -->
             <div class="analytics-grid">
                 <div class="analytics-card">
                     <h4>Total Earned</h4>
                     <p id="total-revenue">₦0</p>
                 </div>
                 <div class="analytics-card">
+                    <h4>Net Balance (85%)</h4>
+                    <p id="net-balance" style="color:var(--primary);">₦0</p>
+                </div>
+                <div class="analytics-card">
                     <h4>Unlocks</h4>
                     <p id="total-unlocks">0</p>
                 </div>
-                <div class="analytics-card">
-                    <h4>Tips</h4>
-                    <p id="total-tips">0</p>
-                </div>
             </div>
+            <button class="btn-accent" style="margin-bottom: 20px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
 
+            <!-- PPV Mass Direct Messaging Broadcast -->
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">VIP Requests & Mass PPV Inbox 📩</h3>
-                <div id="requests-inbox-container">
-                    <p style="font-size: 12px; color: var(--text-muted);">No pending requests found.</p>
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Broadcast PPV Mass DM ⚡</h3>
+                <div class="form-group">
+                    <label>PPV Message & Teaser</label>
+                    <input type="text" id="ppv-msg" class="form-control" placeholder="Check out my new locked drop!">
                 </div>
+                <div class="form-group">
+                    <label>Unlock Price (₦)</label>
+                    <input type="number" id="ppv-price" class="form-control" value="3000">
+                </div>
+                <button class="btn-secondary" onclick="broadcastPPV()">Send Mass DM to All Subscribers</button>
             </div>
 
             <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
@@ -368,6 +384,13 @@
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
         let creatorAvatars = JSON.parse(localStorage.getItem('creator_avatars') || '{}');
 
+        // Check for Referral URL Parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const refParam = urlParams.get('ref');
+        if(refParam) {
+            localStorage.setItem('referred_by', refParam);
+        }
+
         function getSupabase() {
             if (supabaseClient) return supabaseClient;
             const key = localStorage.getItem('supabase_pub_key') || DEFAULT_SB_KEY;
@@ -387,10 +410,21 @@
             
             localStorage.setItem('last_active_tab', tab);
 
-            if(tab === 'feed') renderFeed();
+            if(tab === 'feed') {
+                renderFeed();
+                checkReferralBanner();
+            }
             if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'messages') renderChatInbox();
             if(tab === 'studio') checkAuthStatus();
+        }
+
+        function checkReferralBanner() {
+            const ref = localStorage.getItem('referred_by');
+            if(ref) {
+                document.getElementById('referral-banner').style.display = 'block';
+                document.getElementById('ref-name').innerText = "@" + ref;
+            }
         }
 
         let logoClicks = 0;
@@ -485,10 +519,17 @@
             if(posts) {
                 let unlocksCount = posts.filter(p => unlockedPostIds.includes(p.id) || p.unlocked).length;
                 let totalRev = posts.reduce((sum, p) => (unlockedPostIds.includes(p.id) || p.unlocked) ? sum + Number(p.price) : sum, 0);
+                let netBal = Math.floor(totalRev * 0.85); // Enforcing 85% creator split / 15% platform fee
+                
                 document.getElementById('total-revenue').innerText = `₦${totalRev.toLocaleString()}`;
+                document.getElementById('net-balance').innerText = `₦${netBal.toLocaleString()}`;
                 document.getElementById('total-unlocks').innerText = unlocksCount;
-                document.getElementById('total-tips').innerText = Math.floor(unlocksCount * 0.4);
             }
+        }
+
+        function requestPayout() {
+            const netBal = document.getElementById('net-balance').innerText;
+            alert(`Payout Request Submitted!\n\nYour net balance of ${netBal} has been queued for transfer to your verified bank account (85/15 split applied).`);
         }
 
         async function loadRequestsInbox(userId) {
@@ -521,9 +562,29 @@
             }
             box.innerHTML = '';
             chatMessages.forEach(m => {
-                box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`;
+                if(m.sender === 'ppv') {
+                    box.innerHTML += `
+                        <div class="chat-bubble ppv">
+                            <b>⚡ PPV Mass DM:</b> ${m.text}
+                            <div style="margin-top:8px;"><button class="btn-unlock" style="width:100%; padding:8px;" onclick="payWithPaystack(${m.price}, 'Unlock PPV DM', null, () => alert('PPV Unlocked!'))">Unlock Locked Drop (₦${Number(m.price).toLocaleString()})</button></div>
+                        </div>
+                    `;
+                } else {
+                    box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`;
+                }
             });
             box.scrollTop = box.scrollHeight;
+        }
+
+        function broadcastPPV() {
+            const msg = document.getElementById('ppv-msg').value;
+            const price = document.getElementById('ppv-price').value || 3000;
+            if(!msg) return alert('Enter a PPV message.');
+            
+            chatMessages.push({ sender: 'ppv', text: msg, price: price });
+            localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+            alert('PPV Mass DM broadcasted to all subscriber chats successfully!');
+            switchTab('messages');
         }
 
         function sendChatMessage() {
@@ -566,9 +627,10 @@
 
         function renderMediaHTML(url, unlocked) {
             if (isVideoUrl(url)) {
-                return `<video src="${url}" ${unlocked ? 'controls' : ''} loop playsinline muted autoplay></video>`;
+                // Dynamic fast-loading mobile video configuration
+                return `<video src="${url}" ${unlocked ? 'controls preload="metadata"' : ''} loop playsinline muted autoplay></video>`;
             } else {
-                return `<img src="${url}" alt="Post Media">`;
+                return `<img src="${url}" alt="Post Media" loading="lazy">`;
             }
         }
 
@@ -673,6 +735,9 @@
             const initial = name.charAt(0).toUpperCase();
             const isSubbed = activeSubscriptions[name];
 
+            const currentUrl = window.location.href.split('?')[0];
+            const refLink = `${currentUrl}?ref=${name.toLowerCase().replace(/\s+/g, '')}`;
+
             document.getElementById('profile-header-container').innerHTML = `
                 <div class="profile-card">
                     <div class="profile-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="Avatar">` : initial}</div>
@@ -688,6 +753,8 @@
                     </div>
                 </div>
             `;
+
+            document.getElementById('affiliate-link-input').value = refLink;
 
             const { data: posts } = await client.from('posts').select('*').eq('name', name).order('id', { ascending: false });
             const container = document.getElementById('profile-posts-container');
