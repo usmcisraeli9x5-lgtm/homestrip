@@ -23,7 +23,7 @@ async function checkAuthStatus() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   document.getElementById('auth-section').style.display = session ? 'none' : 'block';
   document.getElementById('studio-post-section').style.display = session ? 'block' : 'none';
-  if (session) { await loadUserDataFromCloud(); loadStats(); }
+  if (session) { await loadUserDataFromCloud(); loadStats(); loadMyProfile(); }
 }
 
 async function loadStats() {
@@ -38,8 +38,8 @@ async function loadStats() {
 async function renderFeed() {
   const c = document.getElementById('posts-container');
   const { data, error } = await supabaseClient.from('posts')
-        .select('*,creators(id,subscription_price_kobo,profiles!creators_id_fkey(username,display_name,avatar_url)),media(storage_path,kind),comments(id,body,profiles!comments_user_id_fkey(username))')
-  .order('id', { ascending: false });
+    .select('*,creators(id,subscription_price_kobo,profiles!creators_id_fkey(username,display_name,avatar_url)),media(storage_path,kind),comments(id,body,profiles!comments_user_id_fkey(username))')
+    .order('id', { ascending: false });
   if (error) { c.innerHTML = `<p style="text-align:center;padding:20px">${esc(error.message)}</p>`; return; }
   cachedPosts = data;
   const paths = data.flatMap(p => p.media.map(m => m.storage_path));
@@ -54,6 +54,7 @@ function card(p) {
   const cr = p.creators || {}, pr = cr.profiles || {}, name = esc(pr.display_name || pr.username || 'Creator');
   const M = p.media, ok = M.length > 0, ppv = p.visibility === 'ppv';
   const saved = savedPostIds.includes(p.id), subbed = activeSubscriptions.includes(p.creator_id);
+  const mine = p.creator_id === myUid;
   const src = ok ? (signed[M[0].storage_path] || '') : '';
   const media = ok ? (M[0].kind === 'video' ? `<video src="${src}" controls playsinline preload="metadata"></video>` : `<img src="${src}" loading="lazy">`) : '';
   const lock = ok ? '' : `<div class="paywall-overlay"><div class="price-tag">${ppv ? naira(p.ppv_price_kobo) : '⭐ VIP only'}</div>${ppv ? `<button class="btn-unlock" onclick="pay('ppv',${p.id})">Unlock Content</button>` : ''}</div>`;
@@ -63,7 +64,7 @@ function card(p) {
 <div class="post-actions-top"><button class="action-icon-btn ${saved ? 'saved' : ''}" onclick="toggleSavePost(${p.id})">${saved ? '❤️ Saved' : '🤍 Save'}</button></div></div>
 <div class="media-container ${ok ? '' : 'locked'}">${media}${lock}<div class="watermark brand-name">HOME<span>STRIP</span></div></div>
 <div class="post-caption">${esc(p.caption)}</div>
-<div class="post-footer-actions"><button class="btn-tip" onclick="pay('tip',null,'${p.creator_id}')">💸 Tip</button>${subbed ? '<span style="font-size:12px;color:var(--accent);font-weight:800;align-self:center">VIP Subscribed ⭐</span>' : `<button class="btn-tip" style="border-color:var(--primary);color:var(--primary)" onclick="pay('sub',null,'${p.creator_id}')">⭐ VIP Pass (${naira(cr.subscription_price_kobo)}/mo)</button>`}</div>
+<div class="post-footer-actions" style="${mine ? 'display:none' : ''}"><button class="btn-tip" onclick="pay('tip',null,'${p.creator_id}')">💸 Tip</button>${subbed ? '<span style="font-size:12px;color:var(--accent);font-weight:800;align-self:center">VIP Subscribed ⭐</span>' : `<button class="btn-tip" style="border-color:var(--primary);color:var(--primary)" onclick="pay('sub',null,'${p.creator_id}')">⭐ VIP Pass (${naira(cr.subscription_price_kobo)}/mo)</button>`}</div>
 <div class="comments-section"><div style="display:flex;gap:8px"><input id="comment-input-${p.id}" class="form-control" placeholder="Add a comment..." style="padding:10px;font-size:12px"><button class="btn-accent" style="width:auto;padding:0 14px;font-size:12px" onclick="postComment(${p.id})">Post</button></div><div class="comments-list">${cm}</div></div></div>`;
 }
 
@@ -171,5 +172,29 @@ function openProfile() {}
 async function renderChatInbox() { document.getElementById('global-chat-box').innerHTML = '<div class="chat-bubble fan">Chat is being upgraded. Coming soon.</div>'; }
 async function sendChatMessage() {}
 async function sendPaywalledDM() {}
+
+async function loadMyProfile() {
+  const { data } = await supabaseClient.from('profiles').select('username,display_name').eq('id', myUid).single();
+  document.getElementById('profile-display-name').value = data?.display_name || data?.username || '';
+  document.getElementById('creator-name').closest('.form-group').style.display = 'none';
+}
+
+async function saveProfilePicture() {
+  if (!myUid) return alert('Log in first.');
+  const name = document.getElementById('profile-display-name').value.trim();
+  const f = document.getElementById('avatar-file-input').files[0];
+  const upd = {};
+  if (name) upd.display_name = name;
+  if (f) {
+    const path = `${myUid}/avatar_${Date.now()}.${f.name.split('.').pop()}`;
+    const up = await supabaseClient.storage.from('avatars').upload(path, f);
+    if (up.error) return alert('Upload failed: ' + up.error.message);
+    upd.avatar_url = supabaseClient.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+  }
+  const { error } = await supabaseClient.from('profiles').update(upd).eq('id', myUid);
+  if (error) return alert(error.message);
+  alert('Profile saved ✅');
+  renderFeed();
+}
 
 loadUserDataFromCloud().then(renderFeed);
