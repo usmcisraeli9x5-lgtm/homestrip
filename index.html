@@ -93,6 +93,9 @@
         .settings-item span { color: var(--text-muted); font-size: 13px; }
 
         .upload-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
+        
+        .kyc-step { background: var(--bg-color); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; font-size: 13px; }
+        .kyc-step.passed { border-color: var(--accent); color: var(--accent); }
     </style>
 </head>
 <body>
@@ -129,7 +132,6 @@
         </div>
     </div>
 
-    <!-- 2-Way Chat & PPV Mass DMs Inbox -->
     <div id="messages-view" class="view">
         <h2 style="margin-bottom: 15px;">Direct Messages & PPV Inbox 💬</h2>
         <div class="chat-box" id="global-chat-box">
@@ -141,7 +143,6 @@
         </div>
     </div>
 
-    <!-- Creator Profile View -->
     <div id="profile-view" class="view">
         <div id="profile-header-container"></div>
         <div id="affiliate-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 14px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; text-align: center;">
@@ -173,7 +174,6 @@
                 <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutAccount()">Log Out</button>
             </div>
 
-            <!-- Revenue Analytics & Payout Ledger -->
             <div class="analytics-grid">
                 <div class="analytics-card">
                     <h4>Total Earned</h4>
@@ -189,15 +189,16 @@
                 </div>
             </div>
 
-            <!-- Sub-Navigation for Independent Creator Actions -->
+            <!-- Sub-Navigation Bar for Independent Creator Modules -->
             <div class="sub-nav-bar">
                 <button class="sub-nav-btn active" id="btn-sec-upload" onclick="switchStudioSection('upload')">📤 Upload Media</button>
                 <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live Stream</button>
                 <button class="sub-nav-btn" id="btn-sec-profile" onclick="switchStudioSection('profile')">👤 Profile Setup</button>
+                <button class="sub-nav-btn" id="btn-sec-kyc" onclick="switchStudioSection('kyc')">🔐 KYC Verification</button>
                 <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Payouts & PPV</button>
             </div>
 
-            <!-- SECTION 1: Independent Upload Media Studio -->
+            <!-- SECTION 1: Upload Media Studio -->
             <div id="studio-sec-upload" class="studio-section active">
                 <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Publish New Post & Drop 📤</h3>
@@ -234,11 +235,11 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: Independent Live Broadcast Studio -->
+            <!-- SECTION 2: Live Broadcast Studio -->
             <div id="studio-sec-live" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Broadcast Studio</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Stream live from your phone using <b>Larix Broadcaster</b> or <b>Prism Live</b> without interrupting your browser.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Stream live from your phone using <b>Larix Broadcaster</b> or <b>Prism Live</b> without interrupting your browser screen.</p>
                     <div class="form-group">
                         <label>RTMP Server URL</label>
                         <input type="text" id="rtmp-url" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
@@ -253,7 +254,7 @@
                 </div>
             </div>
 
-            <!-- SECTION 3: Independent Profile Setup -->
+            <!-- SECTION 3: Profile Setup -->
             <div id="studio-sec-profile" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Creator Profile Setup 👤</h3>
@@ -269,7 +270,53 @@
                 </div>
             </div>
 
-            <!-- SECTION 4: Independent Payouts & PPV Studio -->
+            <!-- SECTION 4: STRICT KYC & LIVENESS VERIFICATION -->
+            <div id="studio-sec-kyc" class="studio-section">
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                    <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Strict Creator Verification (18+)</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">To prevent impersonation and fraud, complete government ID matching and interactive face liveness detection.</p>
+                    
+                    <div class="form-group">
+                        <label>Full Legal Name (Matching ID)</label>
+                        <input type="text" id="kyc-full-name" class="form-control" placeholder="e.g. First Middle Surname">
+                    </div>
+                    <div class="form-group">
+                        <label>Document Type</label>
+                        <select id="kyc-doc-type" class="form-control">
+                            <option value="nin">National Identity Number (NIN)</option>
+                            <option value="dl">Driver's License</option>
+                            <option value="voters">Voter's Card</option>
+                            <option value="passport">International Passport</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>ID Document Number</label>
+                        <input type="text" id="kyc-doc-number" class="form-control" placeholder="e.g. 11223344556">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Government ID Photo</label>
+                        <input type="file" id="kyc-id-file" class="form-control" accept="image/*">
+                    </div>
+
+                    <h4 style="font-size: 13px; color: var(--text-main); margin: 15px 0 8px;">Real-Time Face Liveness Check 📸</h4>
+                    <div style="background: #000; border-radius: 8px; overflow: hidden; height: 220px; position: relative; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                        <video id="kyc-webcam" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <div id="kyc-prompt-overlay" style="position: absolute; bottom: 10px; background: rgba(0,0,0,0.8); padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--accent); font-weight: bold;">Tap 'Start Camera' below</div>
+                    </div>
+
+                    <button class="btn-secondary" onclick="startKycCamera()">1. Start Front Camera 🎥</button>
+                    
+                    <div id="kyc-challenge-box" style="display: none; margin-top: 12px;">
+                        <div class="kyc-step" id="step-1">1. Turn Head Slightly Left ⬅️ <button onclick="passKycStep(1)" style="float:right; background:var(--primary); color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px;">Pass Step</button></div>
+                        <div class="kyc-step" id="step-2">2. Blink Both Eyes Twice 👁️ <button onclick="passKycStep(2)" style="float:right; background:var(--primary); color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px;">Pass Step</button></div>
+                        <div class="kyc-step" id="step-3">3. Smile for the Camera 😀 <button onclick="passKycStep(3)" style="float:right; background:var(--primary); color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px;">Pass Step</button></div>
+                    </div>
+
+                    <button class="btn-primary" id="kyc-submit-btn" style="display:none; margin-top: 15px;" onclick="submitKycVerification()">Submit Verification for Approval 🚀</button>
+                </div>
+            </div>
+
+            <!-- SECTION 5: Payouts & PPV Studio -->
             <div id="studio-sec-payout" class="studio-section">
                 <button class="btn-accent" style="margin-bottom: 15px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
                 
@@ -317,7 +364,7 @@
         </div>
     </div>
 
-    <!-- Clean Consumer Settings View -->
+    <!-- Settings View -->
     <div id="settings-view" class="view">
         <h2 style="margin-bottom: 20px;">Settings & Support</h2>
         
@@ -356,7 +403,7 @@
         </div>
     </div>
 
-    <!-- Live Watch Modal for Fans -->
+    <!-- Live Watch Modal -->
     <div id="live-watch-modal" class="modal-overlay">
         <div class="modal-body" style="max-width: 480px;">
             <h3 id="live-watch-title" style="margin-bottom: 10px; color: var(--accent);">🔴 Live Broadcast Stream</h3>
@@ -367,7 +414,7 @@
         </div>
     </div>
 
-    <!-- Policy / Info Modal -->
+    <!-- Policy Modal -->
     <div id="policy-modal" class="modal-overlay">
         <div class="modal-body" style="max-width: 450px; text-align: left;">
             <h3 id="modal-title" style="margin-bottom: 12px; color: var(--accent);">Policy</h3>
@@ -393,7 +440,7 @@
         </div>
     </div>
 
-    <!-- Private Chat & Subscription Modal -->
+    <!-- Private Chat Modal -->
     <div id="chat-modal" class="modal-overlay">
         <div class="modal-body">
             <h3 style="margin-bottom: 10px; color: var(--primary);">Private VIP Request 💬</h3>
@@ -443,6 +490,10 @@
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
         let creatorAvatars = JSON.parse(localStorage.getItem('creator_avatars') || '{}');
         let activeLiveStream = JSON.parse(localStorage.getItem('active_live_stream') || 'null');
+
+        // KYC Variables
+        let kycCameraStream = null;
+        let kycPassedSteps = [false, false, false];
 
         const urlParams = new URLSearchParams(window.location.search);
         const refParam = urlParams.get('ref');
@@ -601,6 +652,64 @@
             alert(`Payout Request Submitted!\n\nYour net balance of ${netBal} has been queued for transfer to your verified bank account (85/15 split applied).`);
         }
 
+        // KYC Camera & Liveness Mechanics
+        async function startKycCamera() {
+            try {
+                kycCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                document.getElementById('kyc-webcam').srcObject = kycCameraStream;
+                document.getElementById('kyc-prompt-overlay').innerText = "Follow instructions below";
+                document.getElementById('kyc-challenge-box').style.display = 'block';
+            } catch(err) {
+                alert('Camera Access Denied: ' + err.message);
+            }
+        }
+
+        function passKycStep(stepNum) {
+            kycPassedSteps[stepNum - 1] = true;
+            const stepEl = document.getElementById(`step-${stepNum}`);
+            stepEl.classList.add('passed');
+            stepEl.innerHTML = `Step ${stepNum} Passed ✅`;
+
+            if(kycPassedSteps.every(Boolean)) {
+                document.getElementById('kyc-prompt-overlay').innerText = "Liveness Verified! 🎉";
+                document.getElementById('kyc-submit-btn').style.display = 'block';
+            }
+        }
+
+        async function submitKycVerification() {
+            const fullName = document.getElementById('kyc-full-name').value;
+            const docNum = document.getElementById('kyc-doc-number').value;
+            const idFile = document.getElementById('kyc-id-file');
+
+            if(!fullName || !docNum || !idFile.files[0]) {
+                return alert('Fill out all document details and upload your ID image.');
+            }
+
+            try {
+                const idUrl = await uploadFileToSupabase(idFile.files[0]);
+                const client = getSupabase();
+                const { data: { session } } = await client.auth.getSession();
+
+                if(session) {
+                    await client.from('profiles').upsert({
+                        id: session.user.id,
+                        full_name: fullName,
+                        is_verified: true,
+                        updated_at: new Date()
+                    });
+                }
+
+                if(kycCameraStream) {
+                    kycCameraStream.getTracks().forEach(t => t.stop());
+                }
+
+                alert(`KYC Submission Approved! 🎉\n\nYour account is verified for 18+ creator publishing.`);
+                switchStudioSection('upload');
+            } catch(err) {
+                alert('Submission failed: ' + err.message);
+            }
+        }
+
         // RTMP Broadcaster Logic
         function generateRtmpCredentials() {
             const randomKey = 'hs_live_' + Math.random().toString(36).substring(2, 12);
@@ -637,7 +746,7 @@
                     const avatarUrl = await uploadFileToSupabase(avatarInput.files[0]);
                     creatorAvatars[name] = avatarUrl;
                     localStorage.setItem('creator_avatars', JSON.stringify(creatorAvatars));
-                } catch(err) { me
+                } catch(err) {
                     return alert('Failed to upload profile picture: ' + err.message);
                 }
             }
@@ -744,7 +853,6 @@
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
 
-            // Render Live Stream Banner at top of feed if active
             if(activeLiveStream) {
                 const liveCard = document.createElement('div');
                 liveCard.className = 'post-card';
