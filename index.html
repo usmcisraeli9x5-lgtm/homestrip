@@ -4,109 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOME STRIP | Creator Ecosystem</title>
+    <!-- Premium Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-color: #0c0a0f;
-            --card-bg: #16121f;
+            --bg-color: #08060c;
+            --card-bg: rgba(22, 18, 31, 0.85);
+            --card-border: #2c223b;
             --primary: #ff0055;
+            --primary-glow: rgba(255, 0, 85, 0.35);
             --accent: #00f0ff;
+            --accent-glow: rgba(0, 240, 255, 0.35);
             --text-main: #ffffff;
-            --text-muted: #a0a0ab;
-            --border: #2a2238;
+            --text-muted: #a49fb5;
+            --gradient-accent: linear-gradient(135deg, #ff0055 0%, #7928ca 50%, #00f0ff 100%);
+            --glass-bg: rgba(22, 18, 31, 0.7);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; background-image: radial-gradient(circle at 50% 0%, rgba(121, 40, 202, 0.15), transparent 60%); }
         
-        header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--card-bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: var(--text-main); cursor: pointer; }
-        .logo span { color: var(--accent); }
-        .badge-18 { background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+        /* Branded Stylized App Name */
+        .brand-name { font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
+        .brand-name span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+        
+        header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--glass-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 22px; cursor: pointer; }
+        .badge-18 { background: linear-gradient(135deg, #ff0055, #ff3300); color: white; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 10px var(--primary-glow); }
 
-        .filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; background: var(--card-bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
-        .filter-chip { background: var(--bg-color); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
-        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; background: rgba(12, 10, 15, 0.9); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+        .filter-chip { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .filter-chip.active { background: var(--gradient-accent); color: white; border-color: transparent; box-shadow: 0 0 12px var(--primary-glow); }
 
-        .sub-nav-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; white-space: nowrap; }
-        .sub-nav-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
-        .sub-nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .sub-nav-bar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; white-space: nowrap; }
+        .sub-nav-btn { background: var(--glass-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+        .sub-nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
-        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-item.active { color: var(--primary); }
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--glass-bg); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
+        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s; }
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
 
         .view { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
         .view.active { display: block; }
         .studio-section { display: none; }
         .studio-section.active { display: block; }
 
-        .post-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; position: relative; }
-        .post-header { display: flex; align-items: center; padding: 14px; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; overflow: hidden; object-fit: cover; }
+        .post-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 22px; position: relative; backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .post-header { display: flex; align-items: center; padding: 14px 16px; gap: 12px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; overflow: hidden; object-fit: cover; border: 2px solid var(--accent); }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .creator-info h4 { font-size: 14px; font-weight: 700; }
+        .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
-        .media-container { position: relative; width: 100%; height: 320px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .media-container { position: relative; width: 100%; height: 340px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
-        .media-container.locked img, .media-container.locked video { filter: blur(25px); transform: scale(1.1); pointer-events: none; }
+        .media-container.locked img, .media-container.locked video { filter: blur(28px); transform: scale(1.15); pointer-events: none; }
         
-        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: rgba(255,255,255,0.7); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.2); }
-        .fomo-badge { position: absolute; top: 12px; left: 12px; background: rgba(255, 0, 85, 0.9); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; z-index: 10; display: flex; align-items: center; gap: 4px; }
+        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); }
+        .fomo-badge { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; z-index: 10; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px var(--primary-glow); }
 
-        .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 10, 15, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; }
-        .price-tag { font-size: 24px; font-weight: 800; color: var(--text-main); }
-        .btn-unlock { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; width: 80%; max-width: 250px; }
-        
-        .post-caption { padding: 14px; font-size: 14px; line-height: 1.4; }
+        .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 6, 12, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; text-align: center; }
+        .price-tag { font-size: 28px; font-weight: 900; color: var(--text-main); text-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        .btn-unlock { background: var(--gradient-accent); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; width: 85%; max-width: 260px; box-shadow: 0 0 20px var(--primary-glow); transition: transform 0.2s; }
+        .btn-unlock:active { transform: scale(0.98); }
 
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-        .form-control { width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 14px; }
-        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
-        .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 10px; }
-        .btn-accent { background: var(--accent); color: #000; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .post-caption { padding: 16px; font-size: 14px; line-height: 1.5; color: #e2dfed; }
 
-        .profile-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
-        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; overflow: hidden; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 14px; background: rgba(12, 10, 15, 0.9); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-main); font-size: 14px; font-weight: 600; outline: none; transition: border 0.2s; }
+        .form-control:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+        .btn-primary { width: 100%; background: var(--gradient-accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 10px; box-shadow: 0 0 15px var(--primary-glow); }
+        .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--card-border); padding: 13px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .btn-accent { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 0 12px var(--accent-glow); }
+
+        .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; backdrop-filter: blur(10px); }
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .profile-actions { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
-        .modal-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+        .modal-body { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         
-        .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .analytics-card { background: var(--card-bg); border: 1px solid var(--border); padding: 14px 10px; border-radius: 10px; text-align: center; }
-        .analytics-card h4 { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
-        .analytics-card p { font-size: 16px; font-weight: 800; color: var(--accent); }
+        .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+        .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
+        .analytics-card h4 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .analytics-card p { font-size: 18px; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
 
-        .chat-box { background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; height: 250px; overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .chat-bubble { padding: 8px 12px; border-radius: 8px; font-size: 13px; max-width: 80%; line-height: 1.4; }
-        .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--border); }
-        .chat-bubble.creator { background: var(--primary); color: #fff; align-self: flex-end; }
-        .chat-bubble.ppv { background: #22182c; border: 1px solid var(--accent); align-self: flex-start; width: 100%; }
+        .chat-box { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; height: 260px; overflow-y: auto; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 82%; line-height: 1.4; font-weight: 600; }
+        .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--card-border); }
+        .chat-bubble.creator { background: var(--gradient-accent); color: #fff; align-self: flex-end; }
+        .chat-bubble.ppv { background: #211531; border: 1px solid var(--accent); align-self: flex-start; width: 100%; }
 
-        .settings-menu { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
-        .settings-item { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .settings-menu { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+        .settings-item { padding: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 700; cursor: pointer; }
         .settings-item:last-child { border-bottom: none; }
         .settings-item span { color: var(--text-muted); font-size: 13px; }
 
-        .upload-status { font-size: 12px; color: var(--accent); margin-top: 6px; display: none; }
+        .upload-status { font-size: 12px; color: var(--accent); margin-top: 8px; display: none; font-weight: 700; }
         
-        .kyc-step { background: var(--bg-color); border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; font-size: 13px; }
-        .kyc-step.passed { border-color: var(--accent); color: var(--accent); }
+        .kyc-step { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); padding: 14px; border-radius: 10px; margin-bottom: 10px; text-align: left; font-size: 13px; font-weight: 700; }
+        .kyc-step.passed { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo" onclick="checkAdminSecret()">HOME<span>STRIP</span></div>
-        <div class="badge-18">18+ Only</div>
+        <div class="logo brand-name" onclick="checkAdminSecret()">HOME<span>STRIP</span></div>
+        <div class="badge-18">18+ VIP</div>
     </header>
 
     <div id="feed-view" class="view active">
-        <div id="referral-banner" style="display:none; background:rgba(0,240,255,0.1); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:15px; font-size:12px; text-align:center;">
+        <div id="referral-banner" style="display:none; background:rgba(0,240,255,0.1); border:1px solid var(--accent); padding:12px; border-radius:12px; margin-bottom:18px; font-size:12px; text-align:center;">
             🔗 Referred by Creator: <b id="ref-name" style="color:var(--accent);"></b>
         </div>
         <div class="filter-bar">
@@ -122,7 +137,7 @@
 
     <div id="unlocked-view" class="view">
         <h2 style="margin-bottom: 15px;">My Subscriptions & Library 👑</h2>
-        <div id="active-subscriptions-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        <div id="active-subscriptions-box" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-bottom: 22px;">
             <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 8px;">Active VIP Passes & Tiers</h3>
             <p id="sub-status-text" style="font-size: 13px; color: var(--text-muted);">No active memberships.</p>
         </div>
@@ -135,7 +150,7 @@
     <div id="messages-view" class="view">
         <h2 style="margin-bottom: 15px;">Direct Messages & PPV Inbox 💬</h2>
         <div class="chat-box" id="global-chat-box">
-            <div class="chat-bubble fan">Welcome to Home Strip! Select a creator profile to open a 1-on-1 VIP chatroom.</div>
+            <div class="chat-bubble fan">Welcome to <span class="brand-name">HOME<span>STRIP</span></span>! Select a creator profile to open a 1-on-1 VIP chatroom.</div>
         </div>
         <div style="display: flex; gap: 8px;">
             <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message or media request...">
@@ -145,7 +160,7 @@
 
     <div id="profile-view" class="view">
         <div id="profile-header-container"></div>
-        <div id="affiliate-box" style="background: var(--card-bg); border: 1px solid var(--border); padding: 14px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; text-align: center;">
+        <div id="affiliate-box" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 14px; border-radius: 12px; margin-bottom: 16px; font-size: 12px; text-align: center;">
             <p style="color:var(--text-muted); margin-bottom:6px;">Your Affiliate Referral Link:</p>
             <input type="text" id="affiliate-link-input" class="form-control" readonly style="font-size:11px; text-align:center;">
         </div>
@@ -169,9 +184,9 @@
         </div>
 
         <div id="studio-post-section" style="display: none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px;">
                 <h2>Creator Studio</h2>
-                <button class="btn-secondary" style="width:auto; padding:6px 12px;" onclick="logoutAccount()">Log Out</button>
+                <button class="btn-secondary" style="width:auto; padding:8px 14px;" onclick="logoutAccount()">Log Out</button>
             </div>
 
             <div class="analytics-grid">
@@ -189,7 +204,7 @@
                 </div>
             </div>
 
-            <!-- Sub-Navigation Bar for Independent Creator Modules -->
+            <!-- Sub-Navigation Bar for Independent Modules -->
             <div class="sub-nav-bar">
                 <button class="sub-nav-btn active" id="btn-sec-upload" onclick="switchStudioSection('upload')">📤 Upload Media</button>
                 <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live Stream</button>
@@ -200,8 +215,8 @@
 
             <!-- SECTION 1: Upload Media Studio -->
             <div id="studio-sec-upload" class="studio-section active">
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Publish New Post & Drop 📤</h3>
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Publish New Post & Drop 📤</h3>
                     <div class="form-group">
                         <label>Category Tag</label>
                         <select id="post-category" class="form-control">
@@ -237,9 +252,9 @@
 
             <!-- SECTION 2: Live Broadcast Studio -->
             <div id="studio-sec-live" class="studio-section">
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Broadcast Studio</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Stream live from your phone using <b>Larix Broadcaster</b> or <b>Prism Live</b> without interrupting your browser screen.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Stream live from your phone using <b>Larix Broadcaster</b> or <b>Prism Live</b> without interrupting your browser screen.</p>
                     <div class="form-group">
                         <label>RTMP Server URL</label>
                         <input type="text" id="rtmp-url" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
@@ -256,8 +271,8 @@
 
             <!-- SECTION 3: Profile Setup -->
             <div id="studio-sec-profile" class="studio-section">
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Creator Profile Setup 👤</h3>
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Creator Profile Setup 👤</h3>
                     <div class="form-group">
                         <label>Display Name</label>
                         <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
@@ -272,7 +287,7 @@
 
             <!-- SECTION 4: STRICT KYC & LIVENESS VERIFICATION -->
             <div id="studio-sec-kyc" class="studio-section">
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Strict Creator Verification (18+)</h3>
                     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">To prevent impersonation and fraud, complete government ID matching and interactive face liveness detection.</p>
                     
@@ -298,29 +313,29 @@
                         <input type="file" id="kyc-id-file" class="form-control" accept="image/*">
                     </div>
 
-                    <h4 style="font-size: 13px; color: var(--text-main); margin: 15px 0 8px;">Real-Time Face Liveness Check 📸</h4>
-                    <div style="background: #000; border-radius: 8px; overflow: hidden; height: 220px; position: relative; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                    <h4 style="font-size: 13px; color: var(--text-main); margin: 18px 0 10px;">Real-Time Face Liveness Check 📸</h4>
+                    <div style="background: #000; border-radius: 12px; overflow: hidden; height: 230px; position: relative; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--card-border);">
                         <video id="kyc-webcam" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <div id="kyc-prompt-overlay" style="position: absolute; bottom: 10px; background: rgba(0,0,0,0.8); padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--accent); font-weight: bold;">Tap 'Start Camera' below</div>
+                        <div id="kyc-prompt-overlay" style="position: absolute; bottom: 12px; background: rgba(0,0,0,0.85); padding: 8px 16px; border-radius: 20px; font-size: 12px; color: var(--accent); font-weight: 800;">Tap 'Start Camera' below</div>
                     </div>
 
                     <button class="btn-secondary" onclick="startKycCamera()">1. Start Front Camera 🎥</button>
                     
-                    <div id="kyc-challenge-box" style="display: none; margin-top: 12px;">
-                        <div class="kyc-step" id="step-1">1. Turn Head Slightly Left ⬅️ <button onclick="passKycStep(1)" style="float:right; background:var(--primary); color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px;">Pass Step</button></div>
-                        <div class="kyc-step" id="step-2">2. Blink Both Eyes Twice 👁️ <button onclick="passKycStep(2)" style="float:right; background:var(--primary); color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px;">Pass Step</button></div>
-                        <div class="kyc-step" id="step-3">3. Smile for the Camera 😀 <button onclick="passKycStep(3)" style="float:right; background:var(--primary); color:#fff; border:none; padding:2px 8px; border-radius:4px; font-size:10px;">Pass Step</button></div>
+                    <div id="kyc-challenge-box" style="display: none; margin-top: 14px;">
+                        <div class="kyc-step" id="step-1">1. Turn Head Slightly Left ⬅️ <button onclick="passKycStep(1)" style="float:right; background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;">Pass Step</button></div>
+                        <div class="kyc-step" id="step-2">2. Blink Both Eyes Twice 👁️ <button onclick="passKycStep(2)" style="float:right; background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;">Pass Step</button></div>
+                        <div class="kyc-step" id="step-3">3. Smile for the Camera 😀 <button onclick="passKycStep(3)" style="float:right; background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;">Pass Step</button></div>
                     </div>
 
-                    <button class="btn-primary" id="kyc-submit-btn" style="display:none; margin-top: 15px;" onclick="submitKycVerification()">Submit Verification for Approval 🚀</button>
+                    <button class="btn-primary" id="kyc-submit-btn" style="display:none; margin-top: 16px;" onclick="submitKycVerification()">Submit Verification for Approval 🚀</button>
                 </div>
             </div>
 
             <!-- SECTION 5: Payouts & PPV Studio -->
             <div id="studio-sec-payout" class="studio-section">
-                <button class="btn-accent" style="margin-bottom: 15px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
+                <button class="btn-accent" style="margin-bottom: 18px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
                 
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-bottom: 22px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Broadcast PPV Mass DM ⚡</h3>
                     <div class="form-group">
                         <label>PPV Message & Teaser</label>
@@ -333,7 +348,7 @@
                     <button class="btn-secondary" onclick="broadcastPPV()">Send Mass DM to All Subscribers</button>
                 </div>
 
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
                     <div class="form-group">
                         <label>Select Bank</label>
@@ -407,7 +422,7 @@
     <div id="live-watch-modal" class="modal-overlay">
         <div class="modal-body" style="max-width: 480px;">
             <h3 id="live-watch-title" style="margin-bottom: 10px; color: var(--accent);">🔴 Live Broadcast Stream</h3>
-            <div style="background:#000; border-radius:8px; overflow:hidden; height:260px; margin-bottom:15px; display:flex; align-items:center; justify-content:center;">
+            <div style="background:#000; border-radius:12px; overflow:hidden; height:260px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; border: 1px solid var(--card-border);">
                 <video id="fan-remote-video" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" autoplay playsinline controls loop style="width:100%; height:100%; object-fit:cover;"></video>
             </div>
             <button class="btn-secondary" onclick="closeModal('live-watch-modal')">Close Stream</button>
@@ -418,7 +433,7 @@
     <div id="policy-modal" class="modal-overlay">
         <div class="modal-body" style="max-width: 450px; text-align: left;">
             <h3 id="modal-title" style="margin-bottom: 12px; color: var(--accent);">Policy</h3>
-            <p id="modal-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; max-height: 250px; overflow-y: auto;"></p>
+            <p id="modal-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; max-height: 260px; overflow-y: auto;"></p>
             <button class="btn-primary" onclick="closeModal('policy-modal')">Close</button>
         </div>
     </div>
@@ -526,7 +541,12 @@
             }
             if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'messages') renderChatInbox();
-            if(tab === 'studio') checkAuthStatus();
+            if(tab === 'studio') {
+                checkAuthStatus();
+                // Restore last viewed studio section
+                const savedSec = localStorage.getItem('last_active_studio_sec') || 'upload';
+                switchStudioSection(savedSec);
+            }
         }
 
         function switchStudioSection(sec) {
@@ -538,6 +558,9 @@
 
             if(targetSec) targetSec.classList.add('active');
             if(targetBtn) targetBtn.classList.add('active');
+
+            // Persist the active studio sub-tab across reloads!
+            localStorage.setItem('last_active_studio_sec', sec);
         }
 
         function checkReferralBanner() {
@@ -582,9 +605,9 @@
                 support: "Help & Support"
             };
             const texts = {
-                terms: "By accessing Home Strip, you agree to abide by all platform creator guidelines, payment rules, and anti-piracy protection protocols. All sales of digital content are final.",
+                terms: "By accessing HOME STRIP, you agree to abide by all platform creator guidelines, payment rules, and anti-piracy protection protocols. All sales of digital content are final.",
                 privacy: "We respect your privacy. Encrypted database records and secure tokenized links ensure your browsing and transaction history remain protected.",
-                compliance: "Home Strip is strictly restricted to adults aged 18 and older. All creators and users must verify their age. Content depicting minors or non-consensual media is strictly prohibited and instantly banned.",
+                compliance: "HOME STRIP is strictly restricted to adults aged 18 and older. All creators and users must verify their age. Content depicting minors or non-consensual media is strictly prohibited and instantly banned.",
                 support: "Need assistance with payouts, account setup, or technical configuration? Contact our platform administrators directly via support@homestrip.ng."
             };
             document.getElementById('modal-title').innerText = titles[type];
@@ -859,15 +882,15 @@
                 liveCard.style.border = '1px solid var(--primary)';
                 liveCard.innerHTML = `
                     <div class="post-header">
-                        <div class="avatar" style="background:var(--primary);">🔴</div>
+                        <div class="avatar" style="background:var(--gradient-accent);">🔴</div>
                         <div class="creator-info">
                             <h4>${activeLiveStream.creator} is LIVE!</h4>
                             <span>RTMP Mobile Stream • <b style="color:var(--accent);">Broadcasting Live</b></span>
                         </div>
                     </div>
-                    <div style="padding:20px; text-align:center; background:#120c18;">
+                    <div style="padding:22px; text-align:center; background:rgba(18, 12, 24, 0.95);">
                         <h3 style="margin-bottom:10px; font-size:16px;">Ticketed Live Stream</h3>
-                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Unlock access to join the live broadcast room.</p>
+                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Unlock access to join the live broadcast room.</p>
                         <button class="btn-primary" onclick="payWithPaystack(${activeLiveStream.price}, 'Live Stream Ticket', null, () => joinLiveStream())">Buy Ticket & Watch Live (₦${Number(activeLiveStream.price).toLocaleString()})</button>
                     </div>
                 `;
@@ -895,7 +918,7 @@
                     <div class="media-container ${isUnlocked ? '' : 'locked'}">
                         ${post.expiration && post.expiration > 0 ? `<div class="fomo-badge">⏳ Limited Drop (${post.expiration}h)</div>` : ''}
                         ${renderMediaHTML(post.media, isUnlocked)}
-                        <div class="watermark">HOME STRIP • EXCLUSIVE</div>
+                        <div class="watermark brand-name">HOME<span>STRIP</span> • EXCLUSIVE</div>
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
@@ -936,7 +959,7 @@
                 card.innerHTML = `
                     <div class="media-container">
                         ${renderMediaHTML(post.media, true)}
-                        <div class="watermark">HOME STRIP • UNLOCKED</div>
+                        <div class="watermark brand-name">HOME<span>STRIP</span> • UNLOCKED</div>
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -963,10 +986,10 @@
                     <div class="profile-avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="Avatar">` : initial}</div>
                     <h2>${name}</h2>
                     <p style="color:var(--text-muted); font-size:14px;">${handle}</p>
-                    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Verified Creator on Home Strip.</p>
-                    <div style="margin: 14px 0;">
-                        ${isSubbed ? `<span style="color:var(--accent); font-weight:700; font-size:13px;">👑 VIP Subscriber (All Content Unlocked)</span>` : `
-                            <div style="display:flex; flex-direction:column; gap:8px;">
+                    <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Verified Creator on <span class="brand-name">HOME<span>STRIP</span></span>.</p>
+                    <div style="margin: 16px 0;">
+                        ${isSubbed ? `<span style="color:var(--accent); font-weight:800; font-size:13px;">👑 VIP Subscriber (All Content Unlocked)</span>` : `
+                            <div style="display:flex; flex-direction:column; gap:10px;">
                                 <button class="btn-secondary" onclick="subscribeToTier('${name}', 'Bronze', 5000)">Bronze Tier (₦5,000/mo)</button>
                                 <button class="btn-primary" onclick="subscribeToTier('${name}', 'Gold VIP', 12500)">Gold VIP Pass (₦12,500/mo)</button>
                             </div>
@@ -974,7 +997,7 @@
                     </div>
                     <div class="profile-actions">
                         <button class="btn-accent" onclick="openModal('tip-modal')">Send Tip 💸</button>
-                        <button class="btn-primary" style="margin-top:0; padding:10px 18px; width:auto;" onclick="openModal('chat-modal')">Private Chat 💬</button>
+                        <button class="btn-primary" style="margin-top:0; padding:12px 20px; width:auto;" onclick="openModal('chat-modal')">Private Chat 💬</button>
                     </div>
                 </div>
             `;
@@ -993,7 +1016,7 @@
                 card.innerHTML = `
                     <div class="media-container ${unlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, unlocked)}
-                        <div class="watermark">HOME STRIP • EXCLUSIVE</div>
+                        <div class="watermark brand-name">HOME<span>STRIP</span> • EXCLUSIVE</div>
                         ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
