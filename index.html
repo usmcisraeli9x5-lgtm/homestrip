@@ -363,9 +363,9 @@
         let currentCategoryFilter = 'All';
         let searchQuery = '';
         let cachedPosts = [];
-        let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
-        let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
-        let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '[]');
+        let unlockedPostIds = [];
+        let savedPostIds = [];
+        let activeSubscriptions = [];
         let userProfileAvatar = localStorage.getItem('user_profile_avatar') || '';
 
         let cameraStream = null;
@@ -396,12 +396,33 @@
             location.reload();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             if(localStorage.getItem('custom_supabase_url')) document.getElementById('config-url').value = localStorage.getItem('custom_supabase_url');
             if(localStorage.getItem('custom_supabase_key')) document.getElementById('config-key').value = localStorage.getItem('custom_supabase_key');
             if(localStorage.getItem('custom_paystack_key')) document.getElementById('config-paystack').value = localStorage.getItem('custom_paystack_key');
+            
+            await loadUserDataFromCloud();
             setupRealtimeSubscriptions();
         });
+
+        async function loadUserDataFromCloud() {
+            if(!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if(!session) return;
+            const userId = session.user.id;
+
+            // Fetch Unlocks
+            const { data: unlocks } = await supabaseClient.from('user_unlocks').select('post_id').eq('user_id', userId);
+            if(unlocks) unlockedPostIds = unlocks.map(u => u.post_id);
+
+            // Fetch Saved Posts
+            const { data: saves } = await supabaseClient.from('saved_posts').select('post_id').eq('user_id', userId);
+            if(saves) savedPostIds = saves.map(s => s.post_id);
+
+            // Fetch Subscriptions
+            const { data: subs } = await supabaseClient.from('subscriptions').select('creator_name').eq('user_id', userId);
+            if(subs) activeSubscriptions = subs.map(sub => sub.creator_name);
+        }
 
         function setupRealtimeSubscriptions() {
             if(!supabaseClient) return;
@@ -503,7 +524,7 @@
 
             let { error: uploadError } = await supabaseClient.storage.from('Media').upload(filePath, file);
             if(uploadError) {
-                console.warn("Storage Bucket Upload Fallback (Ensure Storage Policies permit upload):", uploadError.message);
+                console.warn("Storage Bucket Upload Fallback:", uploadError.message);
                 return await fileToDataURL(file);
             }
 
@@ -542,12 +563,15 @@
             if(!email || !password) return alert('Enter email and password');
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if(error) alert(error.message);
-            else checkAuthStatus();
+            else { await loadUserDataFromCloud(); checkAuthStatus(); }
         }
 
         async function logoutAccount() {
             if(!supabaseClient) return;
             await supabaseClient.auth.signOut();
+            unlockedPostIds = [];
+            savedPostIds = [];
+            activeSubscriptions = [];
             checkAuthStatus();
         }
 
@@ -596,11 +620,16 @@
             displayPosts(posts);
         }
 
-        function toggleSavePost(postId) {
+        async function toggleSavePost(postId) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
             const index = savedPostIds.indexOf(postId);
-            if(index > -1) savedPostIds.splice(index, 1);
-            else savedPostIds.push(postId);
-            localStorage.setItem('saved_posts', JSON.stringify(savedPostIds));
+            if(index > -1) {
+                savedPostIds.splice(index, 1);
+                if(session) await supabaseClient.from('saved_posts').delete().eq('user_id', session.user.id).eq('post_id', postId);
+            } else {
+                savedPostIds.push(postId);
+                if(session) await supabaseClient.from('saved_posts').insert([{ user_id: session.user.id, post_id: postId }]);
+            }
             displayPosts(cachedPosts);
         }
 
@@ -621,12 +650,15 @@
             }
         }
 
-        function subscribeToCreator(creatorName) {
+        async function subscribeToCreator(creatorName) {
             const subFee = 10000;
-            payWithPaystack(subFee, null, `VIP Membership for ${creatorName}`, () => {
+            payWithPaystack(subFee, null, `VIP Membership for ${creatorName}`, async () => {
                 if(!activeSubscriptions.includes(creatorName)) {
                     activeSubscriptions.push(creatorName);
-                    localStorage.setItem('active_subscriptions', JSON.stringify(activeSubscriptions));
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if(session) {
+                        await supabaseClient.from('subscriptions').insert([{ user_id: session.user.id, creator_name: creatorName }]);
+                    }
                 }
                 alert(`Successfully subscribed to ${creatorName}! All their content is now unlocked.`);
                 renderFeed();
@@ -649,7 +681,7 @@
 
             for(let post of filtered) {
                 const isSubbed = activeSubscriptions.includes(post.name);
-                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
+                const isUnlocked = unlockedPostIds.includes(post.id) || unlockedPostIds.includes(String(post.id)) || post.unlocked || isSubbed;
                 const isSaved = savedPostIds.includes(post.id);
 
                 const { data: comments } = await supabaseClient.from('comments').select('*').eq('post_id', post.id).order('id', { ascending: false });
@@ -734,7 +766,7 @@
             container.innerHTML = '';
             if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts from this creator.</p>`; return; }
             posts.forEach(post => {
-                const unlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
+                const unlocked = unlockedPostIds.includes(post.id) || unlockedPostIds.includes(String(post.id)) || post.unlocked || isSubbed;
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
@@ -754,7 +786,7 @@
             const { data: posts } = await supabaseClient.from('posts').select('*');
             if(!posts) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`; return; }
             
-            const unlockedPosts = posts.filter(p => unlockedPostIds.includes(p.id) || p.unlocked || activeSubscriptions.includes(p.name));
+            const unlockedPosts = posts.filter(p => unlockedPostIds.includes(p.id) || unlockedPostIds.includes(String(p.id)) || p.unlocked || activeSubscriptions.includes(p.name));
             if(unlockedPosts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`; return; }
             
             container.innerHTML = '';
@@ -781,15 +813,16 @@
                 box.innerHTML = `<div class="chat-bubble fan">Welcome to HOME STRIP database chat inbox!</div>`;
                 return;
             }
-            messages.forEach((m, idx) => {
+            messages.forEach((m) => {
+                const unlockKey = 'dm_' + m.id;
+                const unlocked = unlockedPostIds.includes(unlockKey) || unlockedPostIds.includes(m.id);
                 if(m.is_paywalled) {
-                    const unlocked = unlockedPostIds.includes('dm_' + m.id);
                     box.innerHTML += `
                         <div class="chat-bubble ${m.sender}" style="width:100%; max-width:100%;">
                             <p style="margin-bottom:6px;">🔒 <b>PPV Drop by Creator</b></p>
                             <div class="media-container ${unlocked ? '' : 'locked'}" style="height:200px; border-radius:10px;">
                                 ${renderMediaHTML(m.media, unlocked)}
-                                ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(m.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${m.price}, 'dm_${m.id}', 'Unlock DM Drop')">Unlock DM Drop</button></div>` : ''}
+                                ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(m.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${m.price}, '${unlockKey}', 'Unlock DM Drop')">Unlock DM Drop</button></div>` : ''}
                             </div>
                         </div>
                     `;
@@ -920,11 +953,14 @@
                     email: 'supporter@homestrip.ng',
                     amount: price * 100,
                     currency: 'NGN',
-                    callback: function(response){ 
+                    callback: async function(response){ 
                         alert(`Payment successful! Receipt Ref: ${response.reference}\nDescription: ${description || 'Content Unlock'}`);
-                        if(targetId && !unlockedPostIds.includes(targetId)) {
-                            unlockedPostIds.push(targetId);
-                            localStorage.setItem('unlocked_posts', JSON.stringify(unlockedPostIds));
+                        if(targetId) {
+                            if(!unlockedPostIds.includes(targetId)) unlockedPostIds.push(targetId);
+                            const { data: { session } } = await supabaseClient.auth.getSession();
+                            if(session) {
+                                await supabaseClient.from('user_unlocks').insert([{ user_id: session.user.id, post_id: String(targetId) }]);
+                            }
                         }
                         if(customCallback) customCallback();
                         renderFeed();
