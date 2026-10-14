@@ -76,7 +76,9 @@
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
         .media-container.locked img, .media-container.locked video { filter: blur(28px); transform: scale(1.15); pointer-events: none; }
         
-        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.15); }
+        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.15); pointer-events: none; }
+        .watermark-dynamic { position: absolute; top: 30%; left: 10%; color: rgba(255,255,255,0.18); font-size: 14px; font-weight: 900; transform: rotate(-25deg); pointer-events: none; letter-spacing: 2px; text-transform: uppercase; }
+
         .fomo-timer { position: absolute; top: 12px; left: 12px; background: rgba(255, 0, 85, 0.85); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(4px); box-shadow: 0 0 10px var(--primary-glow); }
         
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 6, 12, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; text-align: center; }
@@ -104,10 +106,13 @@
         .analytics-card h4 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
         .analytics-card p { font-size: 18px; font-weight: 900; color: var(--accent); }
 
-        .chat-box { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; height: 260px; overflow-y: auto; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 82%; font-weight: 600; }
+        .chat-box { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; height: 320px; overflow-y: auto; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-bubble { padding: 12px 14px; border-radius: 14px; font-size: 13px; max-width: 85%; font-weight: 600; line-height: 1.4; }
         .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--card-border); }
         .chat-bubble.creator { background: var(--gradient-accent); color: #fff; align-self: flex-end; }
+
+        .cam-preview-box { width: 100%; height: 260px; background: #000; border-radius: 14px; overflow: hidden; position: relative; margin-bottom: 14px; border: 1px solid var(--card-border); }
+        .cam-preview-box video { width: 100%; height: 100%; object-fit: cover; }
 
         .settings-menu { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
         .settings-item { padding: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--text-main); font-size: 14px; font-weight: 700; cursor: pointer; }
@@ -166,13 +171,18 @@
     </div>
 
     <div id="messages-view" class="view">
-        <h2 style="margin-bottom: 15px;">Direct Messages 💬</h2>
-        <div class="chat-box" id="global-chat-box">
-            <div class="chat-bubble fan">Welcome to HOME STRIP! Select a creator profile to start chatting.</div>
-        </div>
-        <div style="display: flex; gap: 8px;">
-            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message...">
-            <button class="btn-accent" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">Send</button>
+        <h2 style="margin-bottom: 15px;">Direct Messages & Pay-To-View 💬</h2>
+        <div class="chat-box" id="global-chat-box"></div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a private message...">
+                <button class="btn-accent" style="width: auto; padding: 0 18px;" onclick="sendChatMessage()">Send</button>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input type="number" id="dm-drop-price" class="form-control" placeholder="PPV Price (₦)" style="width:130px;" value="1500">
+                <input type="file" id="dm-drop-file" class="form-control" accept="image/*,video/*" style="font-size:11px;">
+                <button class="btn-secondary" style="width:auto; padding:10px 14px; white-space:nowrap;" onclick="sendPaywalledDM()">🔒 Send PPV</button>
+            </div>
         </div>
     </div>
 
@@ -224,9 +234,8 @@
 
             <div class="sub-nav-bar">
                 <button class="sub-nav-btn active" id="btn-sec-upload" onclick="switchStudioSection('upload')">📤 Upload</button>
-                <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live</button>
+                <button class="sub-nav-btn" id="btn-sec-cam" onclick="switchStudioSection('cam')">📷 Phone Cam</button>
                 <button class="sub-nav-btn" id="btn-sec-profile" onclick="switchStudioSection('profile')">👤 Profile</button>
-                <button class="sub-nav-btn" id="btn-sec-kyc" onclick="switchStudioSection('kyc')">🔐 KYC</button>
                 <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Payouts</button>
             </div>
 
@@ -262,37 +271,39 @@
                 </div>
             </div>
 
-            <div id="studio-sec-live" class="studio-section">
+            <div id="studio-sec-cam" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Studio</h3>
-                    <div class="form-group"><label>RTMP URL</label><input type="text" class="form-control" value="rtmp://live.homestrip.ng/app" readonly></div>
-                    <div class="form-group"><label>Stream Key</label><input type="text" class="form-control" value="hs_live_key_9982x7a" readonly></div>
-                    <button class="btn-primary" onclick="alert('Stream key active!')">Generate Stream Key 🔑</button>
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📱 Live Phone Camera Recording</h3>
+                    <div class="cam-preview-box">
+                        <video id="live-cam-video" autoplay playsinline muted></video>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <button class="btn-secondary" onclick="startCameraStream('user')">Selfie Cam 🤳</button>
+                        <button class="btn-secondary" onclick="startCameraStream('environment')">Back Cam 🎥</button>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-primary" id="record-start-btn" onclick="startRecordingVideo()">● Start Recording</button>
+                        <button class="btn-secondary" id="record-stop-btn" style="display:none;" onclick="stopRecordingVideo()">⏹ Stop & Save</button>
+                    </div>
                 </div>
             </div>
 
             <div id="studio-sec-profile" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Profile Picture & Setup</h3>
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Profile Setup</h3>
                     <div class="form-group"><label>Display Name</label><input type="text" id="profile-display-name" class="form-control" value="Lord Enzo"></div>
                     <div class="form-group"><label>Profile Image File</label><input type="file" id="avatar-file-input" class="form-control" accept="image/*"></div>
                     <button class="btn-primary" onclick="saveProfilePicture()">Save Profile Picture</button>
                 </div>
             </div>
 
-            <div id="studio-sec-kyc" class="studio-section">
-                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Verification</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Identity verification active.</p>
-                    <button class="btn-secondary" onclick="alert('Camera test passed')">Start Liveness Camera 🎥</button>
-                </div>
-            </div>
-
             <div id="studio-sec-payout" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Bank Payout Settings</h3>
-                    <div class="form-group"><label>Account Number</label><input type="number" class="form-control" placeholder="0123456789"></div>
-                    <button class="btn-secondary" onclick="alert('Bank saved!')">Save Bank Account</button>
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Bank Payout & Withdrawal Request</h3>
+                    <div class="form-group"><label>Bank Name</label><input type="text" id="payout-bank-name" class="form-control" placeholder="e.g. GTBank / Kuda / OPay"></div>
+                    <div class="form-group"><label>Account Number</label><input type="number" id="payout-acc-num" class="form-control" placeholder="0123456789"></div>
+                    <div class="form-group"><label>Withdrawal Amount (₦)</label><input type="number" id="payout-amount" class="form-control" value="50000"></div>
+                    <button class="btn-primary" onclick="requestBankWithdrawal()">Request Cash Out 💸</button>
                 </div>
             </div>
         </div>
@@ -311,7 +322,7 @@
         <div class="modal-body" style="text-align: left;">
             <h3 style="margin-bottom: 12px; color: var(--accent);">Protected Developer Keys ⚙️</h3>
             <div class="form-group"><label>Supabase URL</label><input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co"></div>
-            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA0NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
+            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
             <div class="form-group"><label>Paystack Public Key</label><input type="text" id="config-paystack" class="form-control" value="pk_live_e28e80eb3c55079272d529568d6946bf6"></div>
             <button class="btn-primary" onclick="saveDeveloperConfig()">Save & Reconnect</button>
             <button class="btn-secondary" onclick="closeModal('admin-config-modal')">Close</button>
@@ -336,7 +347,7 @@
 
     <script>
         let SUPABASE_URL = localStorage.getItem('custom_supabase_url') || "https://vypsemwlbomslczvnxix.supabase.co";
-        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA0NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
+        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
         let PAYSTACK_PUB_KEY = localStorage.getItem('custom_paystack_key') || "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
         let supabaseClient = null;
@@ -349,8 +360,12 @@
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
         let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
-        let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
+        let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[{"sender":"creator","text":"Welcome to HOME STRIP direct messages!"}]');
         let userProfileAvatar = localStorage.getItem('user_profile_avatar') || '';
+
+        let cameraStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
 
         if(localStorage.getItem('age_verified_18') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
@@ -399,6 +414,60 @@
             document.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('studio-sec-' + sec).classList.add('active');
             document.getElementById('btn-sec-' + sec).classList.add('active');
+            if(sec === 'cam') startCameraStream('user');
+            else stopCameraStream();
+        }
+
+        async function startCameraStream(facing) {
+            stopCameraStream();
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: true });
+                const videoElem = document.getElementById('live-cam-video');
+                videoElem.srcObject = cameraStream;
+            } catch(e) {
+                alert("Camera Access Error: " + e.message);
+            }
+        }
+
+        function stopCameraStream() {
+            if(cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+
+        function startRecordingVideo() {
+            if(!cameraStream) return alert("Start camera stream first.");
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(cameraStream);
+            mediaRecorder.ondataavailable = e => { if(e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+                const recordingUrl = await fileToDataURL(blob);
+                const caption = prompt("Enter drop caption:", "Phone Camera Drop 📱");
+                if(caption) {
+                    const newPost = {
+                        name: "Lord Enzo",
+                        caption: caption,
+                        price: 3000,
+                        media: recordingUrl,
+                        category: "Video",
+                        unlocked: false
+                    };
+                    await supabaseClient.from('posts').insert([newPost]);
+                    alert("Recorded video published live!");
+                    switchTab('feed');
+                }
+            };
+            mediaRecorder.start();
+            document.getElementById('record-start-btn').style.display = 'none';
+            document.getElementById('record-stop-btn').style.display = 'block';
+        }
+
+        function stopRecordingVideo() {
+            if(mediaRecorder) mediaRecorder.stop();
+            document.getElementById('record-start-btn').style.display = 'block';
+            document.getElementById('record-stop-btn').style.display = 'none';
         }
 
         function openPolicyModal(type) {
@@ -548,6 +617,7 @@
                         <div class="fomo-timer">⏳ 23h 59m left</div>
                         ${renderMediaHTML(post.media, isUnlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span></div>
+                        <div class="watermark-dynamic">PROTECTED MEDIA • HOMESTRIP</div>
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
@@ -623,9 +693,23 @@
 
         function renderChatInbox() {
             const box = document.getElementById('global-chat-box');
-            if(chatMessages.length === 0) { box.innerHTML = `<div class="chat-bubble fan">Start a conversation with verified creators!</div>`; return; }
             box.innerHTML = '';
-            chatMessages.forEach(m => { box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`; });
+            chatMessages.forEach((m, idx) => {
+                if(m.isPaywalled) {
+                    const unlocked = unlockedPostIds.includes('dm_' + idx);
+                    box.innerHTML += `
+                        <div class="chat-bubble ${m.sender}" style="width:100%; max-width:100%;">
+                            <p style="margin-bottom:6px;">🔒 <b>Exclusive Pay-Per-View Drop</b></p>
+                            <div class="media-container ${unlocked ? '' : 'locked'}" style="height:200px; border-radius:10px;">
+                                ${renderMediaHTML(m.media, unlocked)}
+                                ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(m.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${m.price}, 'dm_${idx}')">Unlock DM Drop</button></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`;
+                }
+            });
             box.scrollTop = box.scrollHeight;
         }
 
@@ -637,11 +721,30 @@
             localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
             input.value = '';
             renderChatInbox();
-            setTimeout(() => {
-                chatMessages.push({ sender: 'creator', text: 'Thanks for reaching out! I will respond shortly.' });
-                localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
-                renderChatInbox();
-            }, 1000);
+        }
+
+        async function sendPaywalledDM() {
+            const price = document.getElementById('dm-drop-price').value || 1500;
+            const fileInput = document.getElementById('dm-drop-file');
+            if(!fileInput.files || fileInput.files.length === 0) return alert('Select media file for PPV message.');
+            const mediaUrl = await fileToDataURL(fileInput.files[0]);
+            chatMessages.push({
+                sender: 'creator',
+                isPaywalled: true,
+                price: price,
+                media: mediaUrl
+            });
+            localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+            fileInput.value = '';
+            renderChatInbox();
+        }
+
+        function requestBankWithdrawal() {
+            const bank = document.getElementById('payout-bank-name').value;
+            const acc = document.getElementById('payout-acc-num').value;
+            const amount = document.getElementById('payout-amount').value;
+            if(!bank || !acc || !amount) return alert('Fill in all bank withdrawal details.');
+            alert(`Withdrawal request of ₦${Number(amount).toLocaleString()} submitted to ${bank} (${acc}). Processing payout!`);
         }
 
         function fileToDataURL(file) {
@@ -737,6 +840,7 @@
                             localStorage.setItem('unlocked_posts', JSON.stringify(unlockedPostIds));
                         }
                         renderFeed();
+                        renderChatInbox();
                     },
                     onClose: function(){ alert('Payment canceled.'); }
                 });
