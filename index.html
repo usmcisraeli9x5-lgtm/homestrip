@@ -28,12 +28,18 @@
         .filter-chip { background: var(--bg-color); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
         .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
 
+        .sub-nav-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; white-space: nowrap; }
+        .sub-nav-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .sub-nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
         .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-item.active { color: var(--primary); }
 
         .view { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
         .view.active { display: block; }
+        .studio-section { display: none; }
+        .studio-section.active { display: block; }
 
         .post-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; position: relative; }
         .post-header { display: flex; align-items: center; padding: 14px; gap: 12px; }
@@ -182,107 +188,132 @@
                     <p id="total-unlocks">0</p>
                 </div>
             </div>
-            <button class="btn-accent" style="margin-bottom: 20px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
 
-            <!-- External Mobile RTMP Broadcast Studio -->
-            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Mobile RTMP Stream Studio</h3>
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Use any mobile broadcast app (like <b>Larix Broadcaster</b> or <b>Prism Live</b>) to stream from your phone without locking your browser screen.</p>
-                <div class="form-group">
-                    <label>RTMP Server URL</label>
-                    <input type="text" id="rtmp-url" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Your Secure Stream Key</label>
-                    <input type="text" id="rtmp-key" class="form-control" value="hs_live_key_9982x7a" readonly>
-                </div>
-                <button class="btn-primary" onclick="generateRtmpCredentials()">Generate New Stream Key 🔑</button>
-                <button class="btn-secondary" onclick="goLiveRtmpFeed()">Publish Live Stream Feed to App 🔴</button>
-                <button class="btn-secondary" onclick="stopRtmpFeed()" style="border-color:var(--primary); color:var(--primary);">End Live Stream</button>
+            <!-- Sub-Navigation for Independent Creator Actions -->
+            <div class="sub-nav-bar">
+                <button class="sub-nav-btn active" id="btn-sec-upload" onclick="switchStudioSection('upload')">📤 Upload Media</button>
+                <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live Stream</button>
+                <button class="sub-nav-btn" id="btn-sec-profile" onclick="switchStudioSection('profile')">👤 Profile Setup</button>
+                <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Payouts & PPV</button>
             </div>
 
-            <!-- PPV Mass Direct Messaging Broadcast -->
-            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Broadcast PPV Mass DM ⚡</h3>
-                <div class="form-group">
-                    <label>PPV Message & Teaser</label>
-                    <input type="text" id="ppv-msg" class="form-control" placeholder="Check out my new locked drop!">
+            <!-- SECTION 1: Independent Upload Media Studio -->
+            <div id="studio-sec-upload" class="studio-section active">
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Publish New Post & Drop 📤</h3>
+                    <div class="form-group">
+                        <label>Category Tag</label>
+                        <select id="post-category" class="form-control">
+                            <option value="Exclusive">Exclusive 💎</option>
+                            <option value="Video">Video Clip 🎬</option>
+                            <option value="VIP">VIP Access ⭐</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>FOMO Expiration Limit</label>
+                        <select id="post-expiration" class="form-control">
+                            <option value="0">No Expiration (Permanent)</option>
+                            <option value="24">24-Hour Limited Drop ⏳</option>
+                            <option value="48">48-Hour Limited Drop ⏳</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Post Caption</label>
+                        <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your clip..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Unlock Price (₦)</label>
+                        <input type="number" id="post-price" class="form-control" placeholder="2500">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Media (Image or Video from Device)</label>
+                        <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
+                        <div id="upload-status" class="upload-status">Uploading media file... Please wait.</div>
+                    </div>
+                    <button class="btn-primary" id="publish-btn" onclick="createPost()">Publish Content Live</button>
                 </div>
-                <div class="form-group">
-                    <label>Unlock Price (₦)</label>
-                    <input type="number" id="ppv-price" class="form-control" value="3000">
-                </div>
-                <button class="btn-secondary" onclick="broadcastPPV()">Send Mass DM to All Subscribers</button>
             </div>
 
-            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
-                <div class="form-group">
-                    <label>Select Bank</label>
-                    <select id="bank-code" class="form-control">
-                        <option value="100004">OPay Digital Services</option>
-                        <option value="50515">Moniepoint Microfinance Bank</option>
-                        <option value="100033">PalmPay</option>
-                        <option value="058">GTBank</option>
-                        <option value="011">First Bank of Nigeria</option>
-                        <option value="057">Zenith Bank</option>
-                        <option value="90115">Kuda Microfinance Bank</option>
-                        <option value="033">United Bank for Africa (UBA)</option>
-                        <option value="044">Access Bank</option>
-                    </select>
+            <!-- SECTION 2: Independent Live Broadcast Studio -->
+            <div id="studio-sec-live" class="studio-section">
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Broadcast Studio</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Stream live from your phone using <b>Larix Broadcaster</b> or <b>Prism Live</b> without interrupting your browser.</p>
+                    <div class="form-group">
+                        <label>RTMP Server URL</label>
+                        <input type="text" id="rtmp-url" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Secure Stream Key</label>
+                        <input type="text" id="rtmp-key" class="form-control" value="hs_live_key_9982x7a" readonly>
+                    </div>
+                    <button class="btn-primary" onclick="generateRtmpCredentials()">Generate New Stream Key 🔑</button>
+                    <button class="btn-secondary" onclick="goLiveRtmpFeed()">Publish Live Stream Banner to Feed 🔴</button>
+                    <button class="btn-secondary" onclick="stopRtmpFeed()" style="border-color:var(--primary); color:var(--primary);">End Live Stream</button>
                 </div>
-                <div class="form-group">
-                    <label>Account Number (10 Digits)</label>
-                    <input type="number" id="account-number" class="form-control" placeholder="0123456789">
-                </div>
-                <div class="form-group">
-                    <label>Account Holder Name (As Registered with Bank)</label>
-                    <input type="text" id="account-holder-name" class="form-control" placeholder="e.g. Lord Enzo">
-                </div>
-                <button class="btn-secondary" onclick="registerVerifiedBank()">Save & Verify Bank Account</button>
             </div>
 
-            <h3 style="font-size: 15px; margin-bottom: 12px;">Publish New Media & PPV Drop</h3>
-            <div class="form-group">
-                <label>Display Name</label>
-                <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
-            </div>
-            <div class="form-group">
-                <label>Profile Picture (Avatar Image)</label>
-                <input type="file" id="avatar-file-input" class="form-control" accept="image/*">
-            </div>
-            <div class="form-group">
-                <label>Category Tag</label>
-                <select id="post-category" class="form-control">
-                    <option value="Exclusive">Exclusive 💎</option>
-                    <option value="Video">Video Clip 🎬</option>
-                    <option value="VIP">VIP Access ⭐</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>FOMO Expiration Limit</label>
-                <select id="post-expiration" class="form-control">
-                    <option value="0">No Expiration (Permanent)</option>
-                    <option value="24">24-Hour Limited Drop ⏳</option>
-                    <option value="48">48-Hour Limited Drop ⏳</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Post Caption</label>
-                <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your clip..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Unlock Price (₦)</label>
-                <input type="number" id="post-price" class="form-control" placeholder="2500">
+            <!-- SECTION 3: Independent Profile Setup -->
+            <div id="studio-sec-profile" class="studio-section">
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Creator Profile Setup 👤</h3>
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
+                    </div>
+                    <div class="form-group">
+                        <label>Update Profile Picture (Avatar Image)</label>
+                        <input type="file" id="avatar-file-input" class="form-control" accept="image/*">
+                    </div>
+                    <button class="btn-primary" onclick="saveCreatorProfile()">Save Profile Settings</button>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Upload Media (Image or Video from Device)</label>
-                <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
-                <div id="upload-status" class="upload-status">Uploading media file... Please wait.</div>
+            <!-- SECTION 4: Independent Payouts & PPV Studio -->
+            <div id="studio-sec-payout" class="studio-section">
+                <button class="btn-accent" style="margin-bottom: 15px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
+                
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Broadcast PPV Mass DM ⚡</h3>
+                    <div class="form-group">
+                        <label>PPV Message & Teaser</label>
+                        <input type="text" id="ppv-msg" class="form-control" placeholder="Check out my new locked drop!">
+                    </div>
+                    <div class="form-group">
+                        <label>Unlock Price (₦)</label>
+                        <input type="number" id="ppv-price" class="form-control" value="3000">
+                    </div>
+                    <button class="btn-secondary" onclick="broadcastPPV()">Send Mass DM to All Subscribers</button>
+                </div>
+
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px;">
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Payout Settings</h3>
+                    <div class="form-group">
+                        <label>Select Bank</label>
+                        <select id="bank-code" class="form-control">
+                            <option value="100004">OPay Digital Services</option>
+                            <option value="50515">Moniepoint Microfinance Bank</option>
+                            <option value="100033">PalmPay</option>
+                            <option value="058">GTBank</option>
+                            <option value="011">First Bank of Nigeria</option>
+                            <option value="057">Zenith Bank</option>
+                            <option value="90115">Kuda Microfinance Bank</option>
+                            <option value="033">United Bank for Africa (UBA)</option>
+                            <option value="044">Access Bank</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Number (10 Digits)</label>
+                        <input type="number" id="account-number" class="form-control" placeholder="0123456789">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Holder Name (As Registered with Bank)</label>
+                        <input type="text" id="account-holder-name" class="form-control" placeholder="e.g. Lord Enzo">
+                    </div>
+                    <button class="btn-secondary" onclick="registerVerifiedBank()">Save & Verify Bank Account</button>
+                </div>
             </div>
 
-            <button class="btn-primary" id="publish-btn" onclick="createPost()">Publish Content Live</button>
         </div>
     </div>
 
@@ -447,6 +478,17 @@
             if(tab === 'studio') checkAuthStatus();
         }
 
+        function switchStudioSection(sec) {
+            document.querySelectorAll('.studio-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.remove('active'));
+            
+            const targetSec = document.getElementById('studio-sec-' + sec);
+            const targetBtn = document.getElementById('btn-sec-' + sec);
+
+            if(targetSec) targetSec.classList.add('active');
+            if(targetBtn) targetBtn.classList.add('active');
+        }
+
         function checkReferralBanner() {
             const ref = localStorage.getItem('referred_by');
             if(ref) {
@@ -567,10 +609,10 @@
         }
 
         function goLiveRtmpFeed() {
-            const creatorName = activeCreatorForAction || "Verified Creator";
+            const creatorName = document.getElementById('creator-name').value || "Verified Creator";
             activeLiveStream = { creator: creatorName, price: 5000 };
             localStorage.setItem('active_live_stream', JSON.stringify(activeLiveStream));
-            alert('🔴 Live Stream Feed Published! Fans can now purchase tickets and watch your broadcast from the feed.');
+            alert('🔴 Live Stream Banner Published! Fans can now purchase tickets and watch your broadcast from the feed.');
             switchTab('feed');
         }
 
@@ -583,6 +625,23 @@
 
         function joinLiveStream() {
             openModal('live-watch-modal');
+        }
+
+        async function saveCreatorProfile() {
+            const name = document.getElementById('creator-name').value;
+            const avatarInput = document.getElementById('avatar-file-input');
+            if(!name) return alert('Enter a display name.');
+
+            if(avatarInput.files && avatarInput.files.length > 0) {
+                try {
+                    const avatarUrl = await uploadFileToSupabase(avatarInput.files[0]);
+                    creatorAvatars[name] = avatarUrl;
+                    localStorage.setItem('creator_avatars', JSON.stringify(creatorAvatars));
+                } catch(err) { me
+                    return alert('Failed to upload profile picture: ' + err.message);
+                }
+            }
+            alert('Profile updated successfully!');
         }
 
         function renderChatInbox() {
@@ -896,7 +955,6 @@
             const caption = document.getElementById('post-caption-input').value;
             const price = document.getElementById('post-price').value || 1000;
             const fileInput = document.getElementById('media-file-input');
-            const avatarInput = document.getElementById('avatar-file-input');
             const uploadStatus = document.getElementById('upload-status');
             const publishBtn = document.getElementById('publish-btn');
 
@@ -904,19 +962,12 @@
             if(!fileInput.files || fileInput.files.length === 0) return alert('Select media file.');
 
             let mediaUrl = "";
-            let avatarUrl = "";
             try {
                 uploadStatus.style.display = 'block';
                 publishBtn.disabled = true;
                 publishBtn.innerText = "Uploading Media...";
                 
                 mediaUrl = await uploadFileToSupabase(fileInput.files[0]);
-                
-                if(avatarInput.files && avatarInput.files.length > 0) {
-                    avatarUrl = await uploadFileToSupabase(avatarInput.files[0]);
-                    creatorAvatars[name] = avatarUrl;
-                    localStorage.setItem('creator_avatars', JSON.stringify(creatorAvatars));
-                }
             } catch(err) {
                 uploadStatus.style.display = 'none';
                 publishBtn.disabled = false;
