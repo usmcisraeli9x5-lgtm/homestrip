@@ -59,8 +59,13 @@
         .post-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
         .post-header-left { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; overflow: hidden; border: 2px solid var(--accent); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
+
+        .post-actions-top { display: flex; gap: 6px; align-items: center; }
+        .action-icon-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .action-icon-btn.saved { color: var(--primary); border-color: var(--primary); }
 
         .media-container { position: relative; width: 100%; height: 340px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
@@ -97,7 +102,7 @@
     </div>
 
     <header>
-        <div class="logo-container">
+        <div class="logo-container" onclick="switchTab('feed')">
             <div class="logo brand-name">HOME<span>STRIP</span></div>
         </div>
         <div class="badge-18">18+ VIP</div>
@@ -105,16 +110,30 @@
 
     <div id="feed-view" class="view active">
         <div class="search-container">
-            <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators or drops..." oninput="handleFeedSearch()">
+            <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators, handles, or drops..." oninput="handleFeedSearch()">
         </div>
         <div class="filter-bar">
             <button class="filter-chip active" onclick="filterFeed('All', this)">All</button>
             <button class="filter-chip" onclick="filterFeed('Video', this)">Videos 🎬</button>
             <button class="filter-chip" onclick="filterFeed('Exclusive', this)">Exclusive 💎</button>
+            <button class="filter-chip" onclick="filterFeed('VIP', this)">VIP ⭐</button>
+            <button class="filter-chip" onclick="filterFeed('Saved', this)">Saved ❤️</button>
         </div>
         <div id="posts-container" style="margin-top: 15px;">
             <p style="text-align: center; color: var(--text-muted); padding: 20px;">Loading global feed...</p>
         </div>
+    </div>
+
+    <div id="unlocked-view" class="view">
+        <h2 style="margin-bottom: 15px;">My Library & Subscriptions 👑</h2>
+        <div id="unlocked-posts-container" style="margin-top: 15px;">
+            <p style="text-align: center; color: var(--text-muted); padding: 20px;">No unlocked content yet.</p>
+        </div>
+    </div>
+
+    <div id="messages-view" class="view">
+        <h2 style="margin-bottom: 15px;">Direct Messages 💬</h2>
+        <p style="color:var(--text-muted); font-size:13px;">Your active chats with creators will appear here.</p>
     </div>
 
     <div id="studio-view" class="view">
@@ -144,10 +163,11 @@
                     <input type="text" id="creator-name" class="form-control" value="Phantom Jade">
                 </div>
                 <div class="form-group">
-                    <label>Category</label>
+                    <label>Category Tag</label>
                     <select id="post-category" class="form-control">
                         <option value="Exclusive">Exclusive 💎</option>
                         <option value="Video">Video Clip 🎬</option>
+                        <option value="VIP">VIP Access ⭐</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -155,7 +175,7 @@
                     <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your drop..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Price (₦)</label>
+                    <label>Unlock Price (₦)</label>
                     <input type="number" id="post-price" class="form-control" value="3000">
                 </div>
                 <div class="form-group">
@@ -170,20 +190,22 @@
 
     <nav class="nav-bar">
         <button class="nav-item active" id="nav-feed" onclick="switchTab('feed')"><span>🔥</span> Feed</button>
+        <button class="nav-item" id="nav-unlocked" onclick="switchTab('unlocked')"><span>👑</span> Library</button>
+        <button class="nav-item" id="nav-messages" onclick="switchTab('messages')"><span>💬</span> Chat</button>
         <button class="nav-item" id="nav-studio" onclick="switchTab('studio')"><span>🎥</span> Studio</button>
     </nav>
 
     <script>
-        // UPDATED WITH NEW SUPABASE PUBLISHABLE KEY FORMAT
         const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
         const SUPABASE_PUB_KEY = "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
         const PAYSTACK_PUB_KEY = "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
-        localStorage.clear();
-
         let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUB_KEY);
+        let currentCategoryFilter = 'All';
+        let searchQuery = '';
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
+        let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
 
         if(localStorage.getItem('age_verified_18') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
@@ -204,6 +226,7 @@
             document.getElementById(tab + '-view').classList.add('active');
             document.getElementById('nav-' + tab).classList.add('active');
             if(tab === 'feed') renderFeed();
+            if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'studio') checkAuthStatus();
         }
 
@@ -253,6 +276,18 @@
             }
         }
 
+        function handleFeedSearch() {
+            searchQuery = document.getElementById('feed-search-input').value.toLowerCase();
+            displayPosts(cachedPosts);
+        }
+
+        function filterFeed(category, btn) {
+            currentCategoryFilter = category;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            displayPosts(cachedPosts);
+        }
+
         async function renderFeed() {
             const container = document.getElementById('posts-container');
             const { data: posts, error } = await supabaseClient.from('posts').select('*').order('id', { ascending: false });
@@ -261,13 +296,53 @@
             displayPosts(posts);
         }
 
+        function toggleSavePost(postId) {
+            const index = savedPostIds.indexOf(postId);
+            if(index > -1) {
+                savedPostIds.splice(index, 1);
+            } else {
+                savedPostIds.push(postId);
+            }
+            localStorage.setItem('saved_posts', JSON.stringify(savedPostIds));
+            displayPosts(cachedPosts);
+        }
+
+        function sharePost(creatorName, caption) {
+            const shareUrl = window.location.href.split('?')[0] + `?ref=${creatorName.toLowerCase().replace(/\s+/g, '')}`;
+            if (navigator.share) {
+                navigator.share({ title: `Exclusive drop by ${creatorName} on HOME STRIP`, text: caption, url: shareUrl });
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                alert('🔗 Share link copied to clipboard!');
+            }
+        }
+
         function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
-            if(posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops found.</p>`; return; }
 
-            posts.forEach(post => {
+            let filtered = posts;
+            if(currentCategoryFilter === 'Saved') {
+                filtered = posts.filter(p => savedPostIds.includes(p.id));
+            } else if(currentCategoryFilter !== 'All') {
+                filtered = posts.filter(p => p.category === currentCategoryFilter);
+            }
+
+            if(searchQuery) {
+                filtered = filtered.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(searchQuery)) ||
+                    (p.caption && p.caption.toLowerCase().includes(searchQuery))
+                );
+            }
+
+            if(filtered.length === 0) { 
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops found.</p>`; 
+                return; 
+            }
+
+            filtered.forEach(post => {
                 const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
+                const isSaved = savedPostIds.includes(post.id);
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
@@ -279,6 +354,10 @@
                                 <span>@${(post.name || 'creator').toLowerCase().replace(/\s+/g, '')} • <b style="color:var(--accent);">${post.category || 'Exclusive'}</b></span>
                             </div>
                         </div>
+                        <div class="post-actions-top">
+                            <button class="action-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleSavePost(${post.id})">${isSaved ? '❤️ Saved' : '🤍 Save'}</button>
+                            <button class="action-icon-btn" onclick="sharePost('${post.name}', '${post.caption}')">🔗 Share</button>
+                        </div>
                     </div>
                     <div class="media-container ${isUnlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, isUnlocked)}
@@ -289,6 +368,30 @@
                                 <button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock Content</button>
                             </div>
                         ` : ''}
+                    </div>
+                    <div class="post-caption">${post.caption}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function renderUnlockedLibrary() {
+            const container = document.getElementById('unlocked-posts-container');
+            if(unlockedPostIds.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`;
+                return;
+            }
+            const { data: posts } = await supabaseClient.from('posts').select('*').in('id', unlockedPostIds);
+            container.innerHTML = '';
+            if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts found.</p>`; return; }
+
+            posts.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="media-container">
+                        ${renderMediaHTML(post.media, true)}
+                        <div class="watermark brand-name">HOME<span>STRIP</span> • UNLOCKED</div>
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
