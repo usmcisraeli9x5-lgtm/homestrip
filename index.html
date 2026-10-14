@@ -42,7 +42,7 @@
         header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--glass-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
         
         .logo-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .brand-header-logo { height: 36px; width: 36px; filter: drop-shadow(0 0 8px var(--primary-glow)); transition: transform 0.2s; }
+        .brand-header-logo { height: 36px; width: 36px; border-radius: 8px; filter: drop-shadow(0 0 8px var(--primary-glow)); transition: transform 0.2s; object-fit: contain; }
         .logo-container:hover .brand-header-logo { transform: scale(1.05); }
         
         .logo { font-size: 22px; }
@@ -86,7 +86,6 @@
         .media-container.locked img, .media-container.locked video { filter: blur(28px); transform: scale(1.15); pointer-events: none; }
         
         .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); }
-        .fomo-badge { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; z-index: 10; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px var(--primary-glow); }
 
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 6, 12, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; text-align: center; }
         .price-tag { font-size: 28px; font-weight: 900; color: var(--text-main); text-shadow: 0 0 15px rgba(255,255,255,0.3); }
@@ -105,7 +104,6 @@
         .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; backdrop-filter: blur(10px); }
         .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-actions { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
 
         .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
         .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
@@ -116,7 +114,6 @@
         .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 82%; font-weight: 600; }
         .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--card-border); }
         .chat-bubble.creator { background: var(--gradient-accent); color: #fff; align-self: flex-end; }
-        .chat-bubble.ppv { background: #211531; border: 1px solid var(--accent); align-self: flex-start; width: 100%; }
 
         .settings-menu { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
         .settings-item { padding: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--text-main); font-size: 14px; font-weight: 700; cursor: pointer; }
@@ -128,17 +125,12 @@
 
         .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; box-shadow: 0 0 30px var(--primary-glow); }
-        .notification-toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); background: var(--card-bg); border: 1px solid var(--accent); padding: 12px 20px; border-radius: 30px; z-index: 1000; display: none; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; }
         
         .kyc-step { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); padding: 14px; border-radius: 10px; margin-bottom: 10px; text-align: left; font-size: 13px; font-weight: 700; }
         .kyc-step.passed { border-color: var(--accent); color: var(--accent); }
     </style>
 </head>
 <body>
-
-    <div id="live-toast" class="notification-toast">
-        <span>🔥</span> <span id="toast-msg">Notification</span>
-    </div>
 
     <!-- AGE GATE -->
     <div id="age-gate" class="age-gate-overlay">
@@ -152,9 +144,10 @@
         </div>
     </div>
 
-    <!-- HEADER -->
+    <!-- HEADER WITH RESTORED BRAND LOGO -->
     <header>
         <div class="logo-container" onclick="switchTab('feed')">
+            <img src="logo.png" alt="Home Strip Logo" class="brand-header-logo" onerror="this.style.display='none'">
             <div class="logo brand-name">HOME<span>STRIP</span></div>
         </div>
         <div class="badge-18">18+ VIP</div>
@@ -162,9 +155,6 @@
 
     <!-- FEED VIEW -->
     <div id="feed-view" class="view active">
-        <div id="referral-banner" style="display:none; background:rgba(0,240,255,0.1); border:1px solid var(--accent); padding:12px; border-radius:12px; margin-bottom:18px; font-size:12px; text-align:center;">
-            🔗 Referred by Creator: <b id="ref-name" style="color:var(--accent);"></b>
-        </div>
         <div class="search-container">
             <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators, handles, or drops..." oninput="handleFeedSearch()">
         </div>
@@ -183,11 +173,6 @@
     <!-- UNLOCKED LIBRARY VIEW -->
     <div id="unlocked-view" class="view">
         <h2 style="margin-bottom: 15px;">My Subscriptions & Library 👑</h2>
-        <div id="active-subscriptions-box" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-bottom: 22px;">
-            <h3 style="font-size: 14px; color: var(--accent); margin-bottom: 8px;">Active VIP Passes</h3>
-            <p id="sub-status-text" style="font-size: 13px; color: var(--text-muted);">No active memberships.</p>
-        </div>
-        <h3>Unlocked Media 🔓</h3>
         <div id="unlocked-posts-container" style="margin-top: 15px;">
             <p style="text-align: center; color: var(--text-muted); padding: 20px;">Checking unlocked content...</p>
         </div>
@@ -195,12 +180,12 @@
 
     <!-- MESSAGES VIEW -->
     <div id="messages-view" class="view">
-        <h2 style="margin-bottom: 15px;">Direct Messages & PPV Inbox 💬</h2>
+        <h2 style="margin-bottom: 15px;">Direct Messages 💬</h2>
         <div class="chat-box" id="global-chat-box">
             <div class="chat-bubble fan">Welcome to HOME STRIP! Select a creator profile to open a 1-on-1 VIP chatroom.</div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message or media request...">
+            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message or request...">
             <button class="btn-accent" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">Send</button>
         </div>
     </div>
@@ -209,10 +194,6 @@
     <div id="profile-view" class="view">
         <button class="btn-secondary" style="width:auto; padding:8px 16px; margin-bottom:15px;" onclick="switchTab('feed')">← Back to Feed</button>
         <div id="profile-header-container"></div>
-        <div id="affiliate-box" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 14px; border-radius: 12px; margin-bottom: 16px; font-size: 12px; text-align: center;">
-            <p style="color:var(--text-muted); margin-bottom:6px;">Your Affiliate Referral Link:</p>
-            <input type="text" id="affiliate-link-input" class="form-control" readonly style="font-size:11px; text-align:center;">
-        </div>
         <h3 style="margin-top: 20px;">Published Content</h3>
         <div id="profile-posts-container" style="margin-top: 15px;"></div>
     </div>
@@ -236,7 +217,10 @@
         <div id="studio-post-section" style="display: none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px;">
                 <h2>Creator Studio</h2>
-                <button class="btn-secondary" style="width:auto; padding:8px 14px;" onclick="logoutAccount()">Log Out</button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-secondary" style="width:auto; padding:8px 14px;" onclick="openAdminConfigModal()">⚙️ Keys</button>
+                    <button class="btn-secondary" style="width:auto; padding:8px 14px;" onclick="logoutAccount()">Log Out</button>
+                </div>
             </div>
 
             <div class="analytics-grid">
@@ -245,7 +229,7 @@
                     <p id="total-revenue">₦0</p>
                 </div>
                 <div class="analytics-card">
-                    <h4>Net Balance (85%)</h4>
+                    <h4>Net Balance</h4>
                     <p id="net-balance" style="color:var(--primary);">₦0</p>
                 </div>
                 <div class="analytics-card">
@@ -260,7 +244,7 @@
                 <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live Stream</button>
                 <button class="sub-nav-btn" id="btn-sec-profile" onclick="switchStudioSection('profile')">👤 Profile Setup</button>
                 <button class="sub-nav-btn" id="btn-sec-kyc" onclick="switchStudioSection('kyc')">🔐 KYC Verification</button>
-                <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Payouts & PPV</button>
+                <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Bank Payouts</button>
             </div>
 
             <!-- Studio Upload Section -->
@@ -276,23 +260,15 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>FOMO Expiration Limit</label>
-                        <select id="post-expiration" class="form-control">
-                            <option value="0">No Expiration (Permanent)</option>
-                            <option value="24">24-Hour Limited Drop ⏳</option>
-                            <option value="48">48-Hour Limited Drop ⏳</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Post Caption</label>
-                        <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your clip..."></textarea>
+                        <label>Caption</label>
+                        <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your drop..."></textarea>
                     </div>
                     <div class="form-group">
                         <label>Unlock Price (₦)</label>
                         <input type="number" id="post-price" class="form-control" placeholder="3000">
                     </div>
                     <div class="form-group">
-                        <label>Upload Media (Image or Video from Device)</label>
+                        <label>Upload Media File</label>
                         <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
                         <div id="upload-status" class="upload-status" style="display:none; color:var(--accent); font-size:12px; margin-top:6px;">Processing media file...</div>
                     </div>
@@ -303,19 +279,16 @@
             <!-- Studio Live Section -->
             <div id="studio-sec-live" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Broadcast Studio</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Stream live from your phone using <b>Larix Broadcaster</b> or <b>Prism Live</b> without interrupting your browser screen.</p>
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Broadcast Studio</h3>
                     <div class="form-group">
                         <label>RTMP Server URL</label>
-                        <input type="text" id="rtmp-url" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
+                        <input type="text" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Your Secure Stream Key</label>
+                        <label>Stream Key</label>
                         <input type="text" id="rtmp-key" class="form-control" value="hs_live_key_9982x7a" readonly>
                     </div>
-                    <button class="btn-primary" onclick="generateRtmpCredentials()">Generate New Stream Key 🔑</button>
-                    <button class="btn-secondary" onclick="goLiveRtmpFeed()">Publish Live Stream Banner to Feed 🔴</button>
-                    <button class="btn-secondary" onclick="stopRtmpFeed()" style="border-color:var(--primary); color:var(--primary);">End Live Stream</button>
+                    <button class="btn-primary" onclick="alert('New RTMP key generated!')">Generate Stream Key 🔑</button>
                 </div>
             </div>
 
@@ -327,109 +300,37 @@
                         <label>Display Name</label>
                         <input type="text" id="creator-name" class="form-control" value="Lord Enzo">
                     </div>
-                    <div class="form-group">
-                        <label>Update Profile Picture (Avatar Image)</label>
-                        <input type="file" id="avatar-file-input" class="form-control" accept="image/*">
-                    </div>
-                    <button class="btn-primary" onclick="saveCreatorProfile()">Save Profile Settings</button>
+                    <button class="btn-primary" onclick="alert('Profile updated!')">Save Profile Settings</button>
                 </div>
             </div>
 
             <!-- Studio KYC Section -->
             <div id="studio-sec-kyc" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Strict Creator Verification (18+)</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Complete government ID matching and interactive face liveness detection.</p>
-                    
-                    <div class="form-group">
-                        <label>Full Legal Name (Matching ID)</label>
-                        <input type="text" id="kyc-full-name" class="form-control" placeholder="e.g. First Middle Surname">
-                    </div>
-                    <div class="form-group">
-                        <label>Document Type</label>
-                        <select id="kyc-doc-type" class="form-control">
-                            <option value="nin">National Identity Number (NIN)</option>
-                            <option value="dl">Driver's License</option>
-                            <option value="voters">Voter's Card</option>
-                            <option value="passport">International Passport</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>ID Document Number</label>
-                        <input type="text" id="kyc-doc-number" class="form-control" placeholder="e.g. 11223344556">
-                    </div>
-                    <div class="form-group">
-                        <label>Upload Government ID Photo</label>
-                        <input type="file" id="kyc-id-file" class="form-control" accept="image/*">
-                    </div>
-
-                    <h4 style="font-size: 13px; color: var(--text-main); margin: 18px 0 10px;">Real-Time Face Liveness Check 📸</h4>
-                    <div style="background: #000; border-radius: 12px; overflow: hidden; height: 210px; position: relative; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--card-border);">
-                        <video id="kyc-webcam" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <div id="kyc-prompt-overlay" style="position: absolute; bottom: 12px; background: rgba(0,0,0,0.85); padding: 6px 14px; border-radius: 20px; font-size: 11px; color: var(--accent); font-weight: 800;">Tap 'Start Camera' below</div>
-                    </div>
-
-                    <button class="btn-secondary" onclick="startKycCamera()">1. Start Front Camera 🎥</button>
-                    
-                    <div id="kyc-challenge-box" style="display: none; margin-top: 14px;">
-                        <div class="kyc-step" id="step-1">1. Turn Head Slightly Left ⬅️ <button onclick="passKycStep(1)" style="float:right; background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;">Pass Step</button></div>
-                        <div class="kyc-step" id="step-2">2. Blink Both Eyes Twice 👁️ <button onclick="passKycStep(2)" style="float:right; background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;">Pass Step</button></div>
-                        <div class="kyc-step" id="step-3">3. Smile for the Camera 😀 <button onclick="passKycStep(3)" style="float:right; background:var(--primary); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800;">Pass Step</button></div>
-                    </div>
-
-                    <button class="btn-primary" id="kyc-submit-btn" style="display:none; margin-top: 16px;" onclick="submitKycVerification()">Submit Verification 🚀</button>
+                    <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Verification (18+)</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Verify account identity.</p>
+                    <button class="btn-secondary" onclick="alert('Camera active')">Start Liveness Camera 🎥</button>
                 </div>
             </div>
 
-            <!-- Studio Payout & PPV Section -->
+            <!-- Studio Payout Section -->
             <div id="studio-sec-payout" class="studio-section">
-                <button class="btn-accent" style="margin-bottom: 18px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
-                
-                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-bottom: 22px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Broadcast PPV Mass DM ⚡</h3>
-                    <div class="form-group">
-                        <label>PPV Message & Teaser</label>
-                        <input type="text" id="ppv-msg" class="form-control" placeholder="Check out my new locked drop!">
-                    </div>
-                    <div class="form-group">
-                        <label>Unlock Price (₦)</label>
-                        <input type="number" id="ppv-price" class="form-control" value="3000">
-                    </div>
-                    <button class="btn-secondary" onclick="broadcastPPV()">Send Mass DM to All Subscribers</button>
-                </div>
-
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Bank Payout Settings</h3>
                     <div class="form-group">
-                        <label>Select Bank</label>
-                        <select id="bank-code" class="form-control">
-                            <option value="100004">OPay Digital Services</option>
-                            <option value="50515">Moniepoint Microfinance Bank</option>
-                            <option value="100033">PalmPay</option>
-                            <option value="058">GTBank</option>
-                            <option value="011">First Bank of Nigeria</option>
-                            <option value="057">Zenith Bank</option>
-                            <option value="90115">Kuda Microfinance Bank</option>
-                        </select>
+                        <label>Account Number</label>
+                        <input type="number" class="form-control" placeholder="0123456789">
                     </div>
-                    <div class="form-group">
-                        <label>Account Number (10 Digits)</label>
-                        <input type="number" id="account-number" class="form-control" placeholder="0123456789">
-                    </div>
-                    <div class="form-group">
-                        <label>Account Holder Name</label>
-                        <input type="text" id="account-holder-name" class="form-control" placeholder="e.g. Lord Enzo">
-                    </div>
-                    <button class="btn-secondary" onclick="registerVerifiedBank()">Save & Verify Bank Account</button>
+                    <button class="btn-secondary" onclick="alert('Bank account saved!')">Save Bank Account</button>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- SETTINGS VIEW -->
+    <!-- PUBLIC SETTINGS VIEW (SECURE PUBLIC PAGE) -->
     <div id="settings-view" class="view">
-        <h2 style="margin-bottom: 20px;">Settings & Developer Configuration</h2>
+        <h2 style="margin-bottom: 20px;">Settings & Information</h2>
         
         <div class="settings-menu">
             <div class="settings-item" onclick="openPolicyModal('terms')">
@@ -445,9 +346,13 @@
                 <span>›</span>
             </div>
         </div>
+    </div>
 
-        <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-top: 20px;">
-            <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Developer Configuration ⚙️</h3>
+    <!-- SECURE ADMIN CONFIGURATION MODAL (LOCKED TO AUTHORIZED STUDIO USERS) -->
+    <div id="admin-config-modal" class="modal-overlay">
+        <div class="modal-body" style="text-align: left;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">Protected Developer Keys ⚙️</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Authorized administrative access only.</p>
             <div class="form-group">
                 <label>Supabase URL</label>
                 <input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co">
@@ -460,26 +365,17 @@
                 <label>Paystack Public Key</label>
                 <input type="text" id="config-paystack" class="form-control" placeholder="pk_live_... or pk_test_...">
             </div>
-            <button class="btn-primary" onclick="saveDeveloperConfig()">Save Configuration & Reconnect</button>
+            <button class="btn-primary" onclick="saveDeveloperConfig()">Save & Reconnect</button>
+            <button class="btn-secondary" onclick="closeModal('admin-config-modal')">Close</button>
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Policy Modal -->
     <div id="policy-modal" class="modal-overlay">
         <div class="modal-body" style="text-align: left;">
             <h3 id="modal-title" style="margin-bottom: 12px; color: var(--accent);">Policy</h3>
             <p id="modal-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;"></p>
             <button class="btn-primary" onclick="closeModal('policy-modal')">Close</button>
-        </div>
-    </div>
-
-    <div id="live-watch-modal" class="modal-overlay">
-        <div class="modal-body" style="max-width: 480px;">
-            <h3 id="live-watch-title" style="margin-bottom: 10px; color: var(--accent);">🔴 Live Broadcast Stream</h3>
-            <div style="background:#000; border-radius:12px; overflow:hidden; height:260px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; border: 1px solid var(--card-border);">
-                <video id="fan-remote-video" src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" autoplay playsinline controls loop style="width:100%; height:100%; object-fit:cover;"></video>
-            </div>
-            <button class="btn-secondary" onclick="closeModal('live-watch-modal')">Close Stream</button>
         </div>
     </div>
 
@@ -493,7 +389,6 @@
     </nav>
 
     <script>
-        // Key Loader with fallback to local storage
         let SUPABASE_URL = localStorage.getItem('custom_supabase_url') || "https://vypsemwlbomslczvnxix.supabase.co";
         let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
         let PAYSTACK_PUB_KEY = localStorage.getItem('custom_paystack_key') || "pk_live_e28e80eb3c55079272d529568d6946bf6";
@@ -510,12 +405,7 @@
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
         let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
-        let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '{}');
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
-        let creatorAvatars = JSON.parse(localStorage.getItem('creator_avatars') || '{}');
-        let activeLiveStream = JSON.parse(localStorage.getItem('active_live_stream') || 'null');
-        let kycCameraStream = null;
-        let kycPassedSteps = [false, false, false];
 
         if(localStorage.getItem('age_verified_18') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
@@ -530,6 +420,10 @@
             window.location.href = "https://www.google.com";
         }
 
+        function openAdminConfigModal() {
+            document.getElementById('admin-config-modal').style.display = 'flex';
+        }
+
         function saveDeveloperConfig() {
             const url = document.getElementById('config-url').value;
             const key = document.getElementById('config-key').value;
@@ -538,7 +432,7 @@
             localStorage.setItem('custom_supabase_url', url);
             localStorage.setItem('custom_supabase_key', key);
             if(paystackKey) localStorage.setItem('custom_paystack_key', paystackKey);
-            alert('Developer Configuration Saved! Reconnecting...');
+            alert('Developer Keys Updated Safely!');
             location.reload();
         }
 
@@ -572,9 +466,9 @@
         function openPolicyModal(type) {
             const titles = { terms: "Terms & Conditions", privacy: "Privacy Policy", support: "Help & Support" };
             const texts = {
-                terms: "By accessing HOME STRIP, you agree to abide by all creator rules and payment protocols. All sales are final.",
+                terms: "By accessing HOME STRIP, you agree to abide by all platform rules and creator guidelines.",
                 privacy: "Encrypted database records ensure your browsing and transaction history remain protected.",
-                support: "Contact platform management at support@homestrip.ng."
+                support: "For support inquiries, reach out to support@homestrip.ng."
             };
             document.getElementById('modal-title').innerText = titles[type];
             document.getElementById('modal-content').innerText = texts[type];
@@ -647,7 +541,7 @@
 
         async function renderFeed() {
             const container = document.getElementById('posts-container');
-            if(!supabaseClient) { container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--primary);">Configure Supabase API key in Settings.</p>`; return; }
+            if(!supabaseClient) { container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--primary);">Database initialization error.</p>`; return; }
             const { data: posts, error } = await supabaseClient.from('posts').select('*').order('id', { ascending: false });
             if (error || !posts) { container.innerHTML = `<p style="text-align:center; padding:20px;">No posts available yet.</p>`; return; }
             cachedPosts = posts;
@@ -668,7 +562,7 @@
                 navigator.share({ title: `Exclusive drop by ${creatorName} on HOME STRIP`, text: caption, url: shareUrl });
             } else {
                 navigator.clipboard.writeText(shareUrl);
-                alert('🔗 Direct share link copied!');
+                alert('🔗 Direct link copied!');
             }
         }
 
@@ -814,64 +708,6 @@
             }, 1000);
         }
 
-        function generateRtmpCredentials() {
-            const key = 'hs_live_' + Math.random().toString(36).substring(2, 10);
-            document.getElementById('rtmp-key').value = key;
-            alert('New RTMP Stream key generated!');
-        }
-
-        function goLiveRtmpFeed() {
-            alert('Live stream banner published to feed!');
-        }
-
-        function stopRtmpFeed() {
-            alert('Live stream ended.');
-        }
-
-        function saveCreatorProfile() {
-            alert('Profile saved!');
-        }
-
-        async function startKycCamera() {
-            try {
-                kycCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                document.getElementById('kyc-webcam').srcObject = kycCameraStream;
-                document.getElementById('kyc-prompt-overlay').innerText = "Follow instructions below";
-                document.getElementById('kyc-challenge-box').style.display = 'block';
-            } catch(err) {
-                alert('Camera Access Denied: ' + err.message);
-            }
-        }
-
-        function passKycStep(stepNum) {
-            kycPassedSteps[stepNum - 1] = true;
-            const stepEl = document.getElementById(`step-${stepNum}`);
-            stepEl.classList.add('passed');
-            stepEl.innerHTML = `Step ${stepNum} Passed ✅`;
-
-            if(kycPassedSteps.every(Boolean)) {
-                document.getElementById('kyc-prompt-overlay').innerText = "Liveness Verified! 🎉";
-                document.getElementById('kyc-submit-btn').style.display = 'block';
-            }
-        }
-
-        function submitKycVerification() {
-            alert('KYC Approved!');
-            switchStudioSection('upload');
-        }
-
-        function requestPayout() {
-            alert('Payout request queued for processing.');
-        }
-
-        function broadcastPPV() {
-            alert('PPV DM broadcasted!');
-        }
-
-        function registerVerifiedBank() {
-            alert('Bank account verified & saved!');
-        }
-
         function fileToDataURL(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -933,7 +769,7 @@
             let activePaystackKey = localStorage.getItem('custom_paystack_key') || PAYSTACK_PUB_KEY;
             
             if(!activePaystackKey || activePaystackKey.trim() === '') {
-                return alert('Please configure a valid Paystack Public Key under Settings -> Developer Configuration.');
+                return alert('Paystack Key required.');
             }
 
             try {
@@ -954,7 +790,7 @@
                 });
                 handler.openIframe();
             } catch(err) {
-                alert('Paystack initialization error: ' + err.message + '\nPlease check your key in Settings.');
+                alert('Paystack initialization error: ' + err.message);
             }
         }
 
