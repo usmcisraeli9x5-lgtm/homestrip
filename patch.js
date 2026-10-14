@@ -38,8 +38,8 @@ async function loadStats() {
 async function renderFeed() {
   const c = document.getElementById('posts-container');
   const { data, error } = await supabaseClient.from('posts')
-    .select('*,creators(id,subscription_price_kobo,profiles(username,display_name,avatar_url)),media(storage_path,kind),comments(id,body,profiles(username))')
-    .order('id', { ascending: false });
+        .select('*,creators(id,subscription_price_kobo,profiles!creators_id_fkey(username,display_name,avatar_url)),media(storage_path,kind),comments(id,body,profiles!comments_user_id_fkey(username))')
+  .order('id', { ascending: false });
   if (error) { c.innerHTML = `<p style="text-align:center;padding:20px">${esc(error.message)}</p>`; return; }
   cachedPosts = data;
   const paths = data.flatMap(p => p.media.map(m => m.storage_path));
