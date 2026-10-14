@@ -305,7 +305,7 @@
                     <div class="form-group">
                         <label>Upload Media (Image or Video from Device)</label>
                         <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
-                        <div id="upload-status" class="upload-status">Uploading media file... Please wait.</div>
+                        <div id="upload-status" class="upload-status">Processing media file... Please wait.</div>
                     </div>
                     <button class="btn-primary" id="publish-btn" onclick="createPost()">Publish Content Live</button>
                 </div>
@@ -534,10 +534,14 @@
     </nav>
 
     <script>
-        // PERMANENTLY HARDCODED API KEYS (No user setup required)
+        // PERMANENT HARDCODED API KEYS & CLEAR CACHE
         const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
         const SUPABASE_PUB_KEY = "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
         const PAYSTACK_PUB_KEY = "pk_live_e28e80eb3c55079272d529568d6946bf6";
+
+        // Clear stale localstorage keys that caused API errors
+        localStorage.removeItem('supabase_pub_key');
+        localStorage.removeItem('paystack_pub_key');
 
         let supabaseClient = null;
         let activeCreatorForAction = null;
@@ -752,7 +756,7 @@
             }
 
             try {
-                const idUrl = await uploadFileToSupabase(idFile.files[0]);
+                const idUrl = await fileToDataURL(idFile.files[0]);
                 const client = getSupabase();
                 const { data: { session } } = await client.auth.getSession();
 
@@ -808,11 +812,11 @@
 
             if(avatarInput.files && avatarInput.files.length > 0) {
                 try {
-                    const avatarUrl = await uploadFileToSupabase(avatarInput.files[0]);
+                    const avatarUrl = await fileToDataURL(avatarInput.files[0]);
                     creatorAvatars[name] = avatarUrl;
                     localStorage.setItem('creator_avatars', JSON.stringify(creatorAvatars));
                 } catch(err) {
-                    return alert('Failed to upload profile picture: ' + err.message);
+                    return alert('Failed to process profile picture: ' + err.message);
                 }
             }
             alert('Profile updated successfully!');
@@ -886,7 +890,7 @@
         }
 
         function isVideoUrl(url) {
-            return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i) || url.includes('video');
+            return url.match(/\.(mp4|webm|ogg|mov)($|\?)/i) || url.includes('video') || url.startsWith('data:video');
         }
 
         function renderMediaHTML(url, unlocked) {
@@ -1166,15 +1170,14 @@
             });
         }
 
-        async function uploadFileToSupabase(file) {
-            const client = getSupabase();
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-            const filePath = `uploads/${fileName}`;
-            const { error } = await client.storage.from('media').upload(filePath, file);
-            if (error) throw error;
-            const { data: publicUrlData } = client.storage.from('media').getPublicUrl(filePath);
-            return publicUrlData.publicUrl;
+        // Helper to convert files to Base64 data URLs (bypasses bucket errors instantly)
+        function fileToDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
         }
 
         async function createPost() {
@@ -1196,14 +1199,15 @@
             try {
                 uploadStatus.style.display = 'block';
                 publishBtn.disabled = true;
-                publishBtn.innerText = "Uploading Media...";
+                publishBtn.innerText = "Processing Media...";
                 
-                mediaUrl = await uploadFileToSupabase(fileInput.files[0]);
+                // Convert file directly to local data URL so it never fails on missing bucket storage
+                mediaUrl = await fileToDataURL(fileInput.files[0]);
             } catch(err) {
                 uploadStatus.style.display = 'none';
                 publishBtn.disabled = false;
                 publishBtn.innerText = "Publish Content Live";
-                return alert('Upload failed: ' + err.message);
+                return alert('Processing failed: ' + err.message);
             }
 
             const newPost = {
