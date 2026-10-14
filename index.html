@@ -88,6 +88,11 @@
         .post-caption { padding: 16px; font-size: 14px; line-height: 1.5; color: #e2dfed; }
         .post-footer-actions { padding: 0 16px 14px; display: flex; gap: 10px; }
 
+        .comments-section { padding: 0 16px 16px; border-top: 1px solid var(--card-border); margin-top: 10px; }
+        .comments-list { max-height: 120px; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .comment-bubble { background: rgba(12, 10, 15, 0.6); padding: 8px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--card-border); }
+        .comment-bubble b { color: var(--accent); }
+
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
         .form-control { width: 100%; padding: 14px; background: rgba(12, 10, 15, 0.9); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-main); font-size: 14px; font-weight: 600; outline: none; }
@@ -171,7 +176,7 @@
     </div>
 
     <div id="messages-view" class="view">
-        <h2 style="margin-bottom: 15px;">Direct Messages & Pay-To-View 💬</h2>
+        <h2 style="margin-bottom: 15px;">Direct Messages & Database Chat 💬</h2>
         <div class="chat-box" id="global-chat-box"></div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display:flex; gap:8px;">
@@ -360,7 +365,7 @@
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
         let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
-        let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[{"sender":"creator","text":"Welcome to HOME STRIP direct messages!"}]');
+        let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '[]');
         let userProfileAvatar = localStorage.getItem('user_profile_avatar') || '';
 
         let cameraStream = null;
@@ -576,11 +581,23 @@
         function sendTip(creatorName) {
             const amount = prompt(`Enter tip amount for ${creatorName} (₦):`, "1000");
             if(amount && Number(amount) >= 100) {
-                payWithPaystack(Number(amount), null);
+                payWithPaystack(Number(amount), null, `Tip for ${creatorName}`);
             }
         }
 
-        function displayPosts(posts) {
+        function subscribeToCreator(creatorName) {
+            const subFee = 10000;
+            payWithPaystack(subFee, null, `VIP Membership for ${creatorName}`, () => {
+                if(!activeSubscriptions.includes(creatorName)) {
+                    activeSubscriptions.push(creatorName);
+                    localStorage.setItem('active_subscriptions', JSON.stringify(activeSubscriptions));
+                }
+                alert(`Successfully subscribed to ${creatorName}! All their content is now unlocked.`);
+                renderFeed();
+            });
+        }
+
+        async function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
             let filtered = posts;
@@ -594,9 +611,14 @@
             }
             if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops found.</p>`; return; }
 
-            filtered.forEach(post => {
-                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
+            for(let post of filtered) {
+                const isSubbed = activeSubscriptions.includes(post.name);
+                const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
                 const isSaved = savedPostIds.includes(post.id);
+
+                // Fetch comments for this post
+                const { data: comments } = await supabaseClient.from('comments').select('*').eq('post_id', post.id).order('id', { ascending: false });
+
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
@@ -621,17 +643,37 @@
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
-                                <button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock Content</button>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id}, 'Unlock Post #${post.id}')">Unlock Content</button>
                             </div>
                         ` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                     <div class="post-footer-actions">
-                        <button class="btn-tip" onclick="sendTip('${post.name}')">💸 Send Tip to Creator</button>
+                        <button class="btn-tip" onclick="sendTip('${post.name}')">💸 Tip</button>
+                        ${!isSubbed ? `<button class="btn-tip" style="border-color:var(--primary); color:var(--primary);" onclick="subscribeToCreator('${post.name}')">⭐ VIP Pass (₦10k/mo)</button>` : `<span style="font-size:12px; color:var(--accent); font-weight:800; align-self:center;">VIP Subscribed ⭐</span>`}
+                    </div>
+                    <div class="comments-section">
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="comment-input-${post.id}" class="form-control" placeholder="Add a comment..." style="padding:10px; font-size:12px;">
+                            <button class="btn-accent" style="width:auto; padding:0 14px; font-size:12px;" onclick="postComment(${post.id})">Post</button>
+                        </div>
+                        <div class="comments-list" id="comments-list-${post.id}">
+                            ${(comments && comments.length > 0) ? comments.map(c => `<div class="comment-bubble"><b>${c.name}</b>:${c.text}</div>`).join('') : '<p style="font-size:11px; color:var(--text-muted); padding:4px;">No comments yet.</p>'}
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
-            });
+            }
+        }
+
+        async function postComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value;
+            if(!text) return;
+            const name = "Lord Enzo";
+            await supabaseClient.from('comments').insert([{ post_id: postId, name: name, text: text }]);
+            input.value = '';
+            renderFeed();
         }
 
         async function openProfile(name, handle) {
@@ -639,28 +681,32 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('profile-view').classList.add('active');
             const { data: posts } = await supabaseClient.from('posts').select('*').eq('name', name);
-            
+            const isSubbed = activeSubscriptions.includes(name);
+
             const avatarImg = userProfileAvatar ? `<img src="${userProfileAvatar}">` : name.charAt(0).toUpperCase();
             document.getElementById('profile-header-container').innerHTML = `
                 <div class="profile-card">
                     <div class="profile-avatar">${avatarImg}</div>
                     <h2>${name}</h2>
                     <p style="color:var(--text-muted); font-size:14px; margin-bottom:12px;">${handle || '@' + name.toLowerCase()}</p>
-                    <button class="btn-tip" onclick="sendTip('${name}')">💸 Send Tip</button>
+                    <div style="display:flex; justify-content:center; gap:8px;">
+                        <button class="btn-tip" onclick="sendTip('${name}')">💸 Send Tip</button>
+                        ${!isSubbed ? `<button class="btn-tip" style="border-color:var(--primary); color:var(--primary);" onclick="subscribeToCreator('${name}')">⭐ VIP Pass (₦10k/mo)</button>` : `<span style="font-size:12px; color:var(--accent); font-weight:800; align-self:center;">VIP Subscribed ⭐</span>`}
+                    </div>
                 </div>
             `;
             const container = document.getElementById('profile-posts-container');
             container.innerHTML = '';
             if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts from this creator.</p>`; return; }
             posts.forEach(post => {
-                const unlocked = unlockedPostIds.includes(post.id) || post.unlocked;
+                const unlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
                     <div class="media-container ${unlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, unlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span></div>
-                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock</button></div>` : ''}
+                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id}, 'Unlock Post')">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -670,14 +716,14 @@
 
         async function renderUnlockedLibrary() {
             const container = document.getElementById('unlocked-posts-container');
-            if(unlockedPostIds.length === 0) { 
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`; 
-                return; 
-            }
-            const { data: posts } = await supabaseClient.from('posts').select('*').in('id', unlockedPostIds);
+            const { data: posts } = await supabaseClient.from('posts').select('*');
+            if(!posts) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`; return; }
+            
+            const unlockedPosts = posts.filter(p => unlockedPostIds.includes(p.id) || p.unlocked || activeSubscriptions.includes(p.name));
+            if(unlockedPosts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`; return; }
+            
             container.innerHTML = '';
-            if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts found.</p>`; return; }
-            posts.forEach(post => {
+            unlockedPosts.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
@@ -691,18 +737,24 @@
             });
         }
 
-        function renderChatInbox() {
+        async function renderChatInbox() {
             const box = document.getElementById('global-chat-box');
+            if(!supabaseClient) return;
+            const { data: messages } = await supabaseClient.from('messages').select('*').order('id', { ascending: true });
             box.innerHTML = '';
-            chatMessages.forEach((m, idx) => {
-                if(m.isPaywalled) {
-                    const unlocked = unlockedPostIds.includes('dm_' + idx);
+            if(!messages || messages.length === 0) {
+                box.innerHTML = `<div class="chat-bubble fan">Welcome to HOME STRIP database chat inbox!</div>`;
+                return;
+            }
+            messages.forEach((m, idx) => {
+                if(m.is_paywalled) {
+                    const unlocked = unlockedPostIds.includes('dm_' + m.id);
                     box.innerHTML += `
                         <div class="chat-bubble ${m.sender}" style="width:100%; max-width:100%;">
-                            <p style="margin-bottom:6px;">🔒 <b>Exclusive Pay-Per-View Drop</b></p>
+                            <p style="margin-bottom:6px;">🔒 <b>PPV Drop by Creator</b></p>
                             <div class="media-container ${unlocked ? '' : 'locked'}" style="height:200px; border-radius:10px;">
                                 ${renderMediaHTML(m.media, unlocked)}
-                                ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(m.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${m.price}, 'dm_${idx}')">Unlock DM Drop</button></div>` : ''}
+                                ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(m.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${m.price}, 'dm_${m.id}', 'Unlock DM Drop')">Unlock DM Drop</button></div>` : ''}
                             </div>
                         </div>
                     `;
@@ -713,12 +765,11 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        function sendChatMessage() {
+        async function sendChatMessage() {
             const input = document.getElementById('chat-input-msg');
             const txt = input.value;
             if(!txt) return;
-            chatMessages.push({ sender: 'fan', text: txt });
-            localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+            await supabaseClient.from('messages').insert([{ sender: 'fan', text: txt, is_paywalled: false }]);
             input.value = '';
             renderChatInbox();
         }
@@ -728,13 +779,12 @@
             const fileInput = document.getElementById('dm-drop-file');
             if(!fileInput.files || fileInput.files.length === 0) return alert('Select media file for PPV message.');
             const mediaUrl = await fileToDataURL(fileInput.files[0]);
-            chatMessages.push({
+            await supabaseClient.from('messages').insert([{
                 sender: 'creator',
-                isPaywalled: true,
-                price: price,
+                is_paywalled: true,
+                price: Number(price),
                 media: mediaUrl
-            });
-            localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+            }]);
             fileInput.value = '';
             renderChatInbox();
         }
@@ -825,7 +875,7 @@
             }
         }
 
-        function payWithPaystack(price, postId) {
+        function payWithPaystack(price, targetId, description, customCallback) {
             let activePaystackKey = localStorage.getItem('custom_paystack_key') || PAYSTACK_PUB_KEY;
             try {
                 let handler = PaystackPop.setup({
@@ -834,11 +884,12 @@
                     amount: price * 100,
                     currency: 'NGN',
                     callback: function(response){ 
-                        alert('Payment successful! Ref: ' + response.reference);
-                        if(postId && !unlockedPostIds.includes(postId)) {
-                            unlockedPostIds.push(postId);
+                        alert(`Payment successful! Receipt Ref: ${response.reference}\nDescription: ${description || 'Content Unlock'}`);
+                        if(targetId && !unlockedPostIds.includes(targetId)) {
+                            unlockedPostIds.push(targetId);
                             localStorage.setItem('unlocked_posts', JSON.stringify(unlockedPostIds));
                         }
+                        if(customCallback) customCallback();
                         renderFeed();
                         renderChatInbox();
                     },
