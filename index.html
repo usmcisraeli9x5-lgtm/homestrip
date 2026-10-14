@@ -12,7 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
     <script src="https://js.paystack.co/v1/inline.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Pinned modern Supabase JS version to fully support publishable keys -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.8"></script>
     <style>
         :root {
             --bg-color: #08060c;
@@ -36,6 +37,8 @@
         header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--glass-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
         
         .logo-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .brand-header-logo { height: 36px; width: 36px; filter: drop-shadow(0 0 8px var(--primary-glow)); }
+        
         .logo { font-size: 22px; }
         .badge-18 { background: linear-gradient(135deg, #ff0055, #ff3300); color: white; font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 12px var(--primary-glow); }
 
@@ -45,6 +48,10 @@
         .filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; background: rgba(12, 10, 15, 0.9); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
         .filter-chip { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .filter-chip.active { background: var(--gradient-accent); color: white; border-color: transparent; box-shadow: 0 0 12px var(--primary-glow); }
+
+        .sub-nav-bar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; white-space: nowrap; }
+        .sub-nav-btn { background: var(--glass-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; }
+        .sub-nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--glass-bg); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
         .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -59,6 +66,7 @@
         .post-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
         .post-header-left { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; overflow: hidden; border: 2px solid var(--accent); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
@@ -82,12 +90,40 @@
 
         .btn-primary { width: 100%; background: var(--gradient-accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--card-border); padding: 13px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; }
-        
+        .btn-accent { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+
+        .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; }
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+        .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
+        .analytics-card h4 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
+        .analytics-card p { font-size: 18px; font-weight: 900; color: var(--accent); }
+
+        .chat-box { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; height: 260px; overflow-y: auto; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 82%; font-weight: 600; }
+        .chat-bubble.fan { background: var(--card-bg); align-self: flex-start; border: 1px solid var(--card-border); }
+        .chat-bubble.creator { background: var(--gradient-accent); color: #fff; align-self: flex-end; }
+
+        .settings-menu { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+        .settings-item { padding: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--text-main); font-size: 14px; font-weight: 700; cursor: pointer; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item span { color: var(--text-muted); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+        .modal-body { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; }
+
         .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; }
+        .notification-toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); background: var(--card-bg); border: 1px solid var(--accent); padding: 12px 20px; border-radius: 30px; z-index: 1000; display: none; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; }
     </style>
 </head>
 <body>
+
+    <div id="live-toast" class="notification-toast">
+        <span>🔥</span> <span id="toast-msg">Notification</span>
+    </div>
 
     <div id="age-gate" class="age-gate-overlay">
         <div class="age-gate-card">
@@ -107,6 +143,7 @@
         <div class="badge-18">18+ VIP</div>
     </header>
 
+    <!-- FEED VIEW -->
     <div id="feed-view" class="view active">
         <div class="search-container">
             <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators, handles, or drops..." oninput="handleFeedSearch()">
@@ -123,6 +160,7 @@
         </div>
     </div>
 
+    <!-- LIBRARY VIEW -->
     <div id="unlocked-view" class="view">
         <h2 style="margin-bottom: 15px;">My Library & Subscriptions 👑</h2>
         <div id="unlocked-posts-container" style="margin-top: 15px;">
@@ -130,11 +168,27 @@
         </div>
     </div>
 
+    <!-- CHAT VIEW -->
     <div id="messages-view" class="view">
         <h2 style="margin-bottom: 15px;">Direct Messages 💬</h2>
-        <p style="color:var(--text-muted); font-size:13px;">Your active chats with creators will appear here.</p>
+        <div class="chat-box" id="global-chat-box">
+            <div class="chat-bubble fan">Welcome to HOME STRIP! Select a creator profile to start chatting.</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message...">
+            <button class="btn-accent" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">Send</button>
+        </div>
     </div>
 
+    <!-- PROFILE VIEW -->
+    <div id="profile-view" class="view">
+        <button class="btn-secondary" style="width:auto; padding:8px 16px; margin-bottom:15px;" onclick="switchTab('feed')">← Back to Feed</button>
+        <div id="profile-header-container"></div>
+        <h3 style="margin-top: 20px;">Published Content</h3>
+        <div id="profile-posts-container" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- STUDIO VIEW -->
     <div id="studio-view" class="view">
         <div id="auth-section">
             <h2 style="margin-bottom: 20px;">Creator & Fan Access</h2>
@@ -155,11 +209,27 @@
                 <h2>Creator Studio</h2>
                 <button class="btn-secondary" style="width:auto; padding:8px 14px;" onclick="logoutAccount()">Log Out</button>
             </div>
+
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>Total Earned</h4>
+                    <p id="total-revenue">₦0</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Net Balance</h4>
+                    <p id="net-balance">₦0</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Unlocks</h4>
+                    <p id="total-unlocks">0</p>
+                </div>
+            </div>
+
             <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Publish New Post & Drop 📤</h3>
+                <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Publish New Drop 📤</h3>
                 <div class="form-group">
                     <label>Creator Name</label>
-                    <input type="text" id="creator-name" class="form-control" value="Phantom Jade">
+                    <input type="text" id="creator-name" class="form-control" value="Lord Enzo">
                 </div>
                 <div class="form-group">
                     <label>Category Tag</label>
@@ -174,11 +244,11 @@
                     <textarea id="post-caption-input" class="form-control" rows="3" placeholder="Describe your drop..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Unlock Price (₦)</label>
+                    <label>Price (₦)</label>
                     <input type="number" id="post-price" class="form-control" value="3000">
                 </div>
                 <div class="form-group">
-                    <label>Upload Media File (Image or Video)</label>
+                    <label>Upload Media File</label>
                     <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
                     <div id="upload-status" class="upload-status" style="display:none; color:var(--accent); font-size:12px; margin-top:6px;">Processing media file...</div>
                 </div>
@@ -187,25 +257,75 @@
         </div>
     </div>
 
+    <!-- SETTINGS VIEW -->
+    <div id="settings-view" class="view">
+        <h2 style="margin-bottom: 20px;">Settings & Developer Configuration</h2>
+        
+        <div class="settings-menu">
+            <div class="settings-item" onclick="openPolicyModal('terms')">
+                <span>Terms & Conditions</span>
+                <span>›</span>
+            </div>
+            <div class="settings-item" onclick="openPolicyModal('privacy')">
+                <span>Privacy Policy</span>
+                <span>›</span>
+            </div>
+            <div class="settings-item" onclick="openPolicyModal('support')">
+                <span>Help & Support</span>
+                <span>›</span>
+            </div>
+        </div>
+
+        <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-top: 20px;">
+            <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Developer Configuration ⚙️</h3>
+            <div class="form-group">
+                <label>Supabase URL</label>
+                <input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co">
+            </div>
+            <div class="form-group">
+                <label>Supabase Publishable / Anon Key</label>
+                <input type="text" id="config-key" class="form-control" placeholder="Paste your Supabase key here">
+            </div>
+            <button class="btn-primary" onclick="saveDeveloperConfig()">Save Configuration & Reconnect</button>
+        </div>
+    </div>
+
+    <!-- Policy Modal -->
+    <div id="policy-modal" class="modal-overlay">
+        <div class="modal-body" style="text-align: left;">
+            <h3 id="modal-title" style="margin-bottom: 12px; color: var(--accent);">Policy</h3>
+            <p id="modal-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;"></p>
+            <button class="btn-primary" onclick="closeModal('policy-modal')">Close</button>
+        </div>
+    </div>
+
     <nav class="nav-bar">
         <button class="nav-item active" id="nav-feed" onclick="switchTab('feed')"><span>🔥</span> Feed</button>
         <button class="nav-item" id="nav-unlocked" onclick="switchTab('unlocked')"><span>👑</span> Library</button>
         <button class="nav-item" id="nav-messages" onclick="switchTab('messages')"><span>💬</span> Chat</button>
         <button class="nav-item" id="nav-studio" onclick="switchTab('studio')"><span>🎥</span> Studio</button>
+        <button class="nav-item" id="nav-settings" onclick="switchTab('settings')"><span>⚙️</span> Settings</button>
     </nav>
 
     <script>
-        const SUPABASE_URL = "https://vypsemwlbomslczvnxix.supabase.co";
-        // Restored correct working key format
-        const SUPABASE_PUB_KEY = "12qnjYa4-Rs2CBffSutn4A_OBtzsr";
+        // Dynamic configuration loader supporting both hardcoded defaults and developer override
+        let SUPABASE_URL = localStorage.getItem('custom_supabase_url') || "https://vypsemwlbomslczvnxix.supabase.co";
+        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
         const PAYSTACK_PUB_KEY = "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
-        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUB_KEY);
+        let supabaseClient = null;
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUB_KEY);
+        } catch(e) {
+            console.error("Supabase init error:", e);
+        }
+
         let currentCategoryFilter = 'All';
         let searchQuery = '';
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
         let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
+        let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
 
         if(localStorage.getItem('age_verified_18') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
@@ -220,17 +340,55 @@
             window.location.href = "https://www.google.com";
         }
 
+        function saveDeveloperConfig() {
+            const url = document.getElementById('config-url').value;
+            const key = document.getElementById('config-key').value;
+            if(!url || !key) return alert('Enter both URL and Key.');
+            localStorage.setItem('custom_supabase_url', url);
+            localStorage.setItem('custom_supabase_key', key);
+            alert('Developer configuration saved! Reconnecting...');
+            location.reload();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if(localStorage.getItem('custom_supabase_url')) {
+                document.getElementById('config-url').value = localStorage.getItem('custom_supabase_url');
+            }
+            if(localStorage.getItem('custom_supabase_key')) {
+                document.getElementById('config-key').value = localStorage.getItem('custom_supabase_key');
+            }
+        });
+
         function switchTab(tab) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(tab + '-view').classList.add('active');
             document.getElementById('nav-' + tab).classList.add('active');
+            
+            localStorage.setItem('last_active_tab', tab);
+
             if(tab === 'feed') renderFeed();
             if(tab === 'unlocked') renderUnlockedLibrary();
-            if(tab === 'studio') checkAuthStatus();
+            if(tab === 'messages') renderChatInbox();
+            if(tab === ' studio') checkAuthStatus();
         }
 
+        function openPolicyModal(type) {
+            const titles = { terms: "Terms & Conditions", privacy: "Privacy Policy", support: "Help & Support" };
+            const texts = {
+                terms: "By accessing HOME STRIP, you agree to abide by all platform creator guidelines and payment rules. All sales of digital content are final.",
+                privacy: "We respect your privacy. Encrypted database records ensure your browsing and transaction history remain protected.",
+                support: "Need assistance with payouts or technical configuration? Contact support@homestrip.ng."
+            };
+            document.getElementById('modal-title').innerText = titles[type];
+            document.getElementById('modal-content').innerText = texts[type];
+            document.getElementById('policy-modal').style.display = 'flex';
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
         async function signUpAccount() {
+            if(!supabaseClient) return alert('Supabase client not initialized. Check developer settings.');
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             if(!email || !password) return alert('Enter email and password');
@@ -240,6 +398,7 @@
         }
 
         async function loginAccount() {
+            if(!supabaseClient) return alert('Supabase client not initialized. Check developer settings.');
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             if(!email || !password) return alert('Enter email and password');
@@ -249,11 +408,13 @@
         }
 
         async function logoutAccount() {
+            if(!supabaseClient) return;
             await supabaseClient.auth.signOut();
             checkAuthStatus();
         }
 
         async function checkAuthStatus() {
+            if(!supabaseClient) return;
             const { data: { session } } = await supabaseClient.auth.getSession();
             if(session) {
                 document.getElementById('auth-section').style.display = 'none';
@@ -290,6 +451,7 @@
 
         async function renderFeed() {
             const container = document.getElementById('posts-container');
+            if(!supabaseClient) { container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--primary);">Configure Supabase API key in Settings.</p>`; return; }
             const { data: posts, error } = await supabaseClient.from('posts').select('*').order('id', { ascending: false });
             if (error || !posts) { container.innerHTML = `<p style="text-align:center; padding:20px;">No posts available yet.</p>`; return; }
             cachedPosts = posts;
@@ -298,11 +460,8 @@
 
         function toggleSavePost(postId) {
             const index = savedPostIds.indexOf(postId);
-            if(index > -1) {
-                savedPostIds.splice(index, 1);
-            } else {
-                savedPostIds.push(postId);
-            }
+            if(index > -1) savedPostIds.splice(index, 1);
+            else savedPostIds.push(postId);
             localStorage.setItem('saved_posts', JSON.stringify(savedPostIds));
             displayPosts(cachedPosts);
         }
@@ -347,7 +506,7 @@
                 card.className = 'post-card';
                 card.innerHTML = `
                     <div class="post-header">
-                        <div class="post-header-left">
+                        <div class="post-header-left" style="cursor:pointer;" onclick="openProfile('${post.name}', '${post.handle}')">
                             <div class="avatar">${post.name ? post.name.charAt(0).toUpperCase() : 'C'}</div>
                             <div class="creator-info">
                                 <h4>${post.name || 'Creator'}</h4>
@@ -368,6 +527,38 @@
                                 <button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock Content</button>
                             </div>
                         ` : ''}
+                    </div>
+                    <div class="post-caption">${post.caption}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function openProfile(name, handle) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('profile-view').classList.add('active');
+
+            const { data: posts } = await supabaseClient.from('posts').select('*').eq('name', name);
+            document.getElementById('profile-header-container').innerHTML = `
+                <div class="profile-card">
+                    <div class="profile-avatar">${name.charAt(0).toUpperCase()}</div>
+                    <h2>${name}</h2>
+                    <p style="color:var(--text-muted); font-size:14px;">${handle || '@' + name.toLowerCase()}</p>
+                </div>
+            `;
+            const container = document.getElementById('profile-posts-container');
+            container.innerHTML = '';
+            if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts from this creator.</p>`; return; }
+            posts.forEach(post => {
+                const unlocked = unlockedPostIds.includes(post.id) || post.unlocked;
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="media-container ${unlocked ? '' : 'locked'}">
+                        ${renderMediaHTML(post.media, unlocked)}
+                        <div class="watermark brand-name">HOME<span>STRIP</span></div>
+                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -399,6 +590,34 @@
             });
         }
 
+        function renderChatInbox() {
+            const box = document.getElementById('global-chat-box');
+            if(chatMessages.length === 0) {
+                box.innerHTML = `<div class="chat-bubble fan">Start a conversation with verified creators!</div>`;
+                return;
+            }
+            box.innerHTML = '';
+            chatMessages.forEach(m => {
+                box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input-msg');
+            const txt = input.value;
+            if(!txt) return;
+            chatMessages.push({ sender: 'fan', text: txt });
+            localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+            input.value = '';
+            renderChatInbox();
+            setTimeout(() => {
+                chatMessages.push({ sender: 'creator', text: 'Thanks for reaching out! I will respond shortly.' });
+                localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
+                renderChatInbox();
+            }, 1000);
+        }
+
         function fileToDataURL(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -410,10 +629,10 @@
 
         async function createPost() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            const name = document.getElementById('creator-name').value || "Creator";
+            const name = document.getElementById('creator-name').value || "Lord Enzo";
             const category = document.getElementById('post-category').value;
             const caption = document.getElementById('post-caption-input').value;
-            const price = document.getElementById('post-price').value || 1000;
+            const price = document.getElementById('post-price').value || 3000;
             const fileInput = document.getElementById('media-file-input');
             const uploadStatus = document.getElementById('upload-status');
             const publishBtn = document.getElementById('publish-btn');
@@ -443,7 +662,7 @@
                 unlocked: false
             };
 
-            const { error } = await supabaseClient.posts.insert([newPost]);
+            const { error } = await supabaseClient.from('posts').insert([newPost]);
             uploadStatus.style.display = 'none';
             publishBtn.disabled = false;
 
@@ -475,7 +694,8 @@
             handler.openIframe();
         }
 
-        renderFeed();
+        const lastTab = localStorage.getItem('last_active_tab') || 'feed';
+        switchTab(lastTab);
     </script>
 </body>
 </html>
