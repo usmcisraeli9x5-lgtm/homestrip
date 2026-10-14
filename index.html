@@ -41,6 +41,10 @@
         .logo { font-size: 22px; }
         .badge-18 { background: linear-gradient(135deg, #ff0055, #ff3300); color: white; font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 12px var(--primary-glow); }
 
+        .search-container { padding: 12px 20px 0; background: rgba(12, 10, 15, 0.9); }
+        .search-input { width: 100%; padding: 10px 16px; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 20px; color: var(--text-main); font-size: 13px; font-weight: 600; outline: none; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+
         .filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; background: rgba(12, 10, 15, 0.9); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
         .filter-chip { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
         .filter-chip.active { background: var(--gradient-accent); color: white; border-color: transparent; box-shadow: 0 0 12px var(--primary-glow); }
@@ -59,18 +63,21 @@
         .studio-section.active { display: block; }
 
         .post-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 22px; position: relative; backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-        .post-header { display: flex; align-items: center; padding: 14px 16px; gap: 12px; }
+        .post-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
+        .post-header-left { display: flex; align-items: center; gap: 12px; }
         .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; overflow: hidden; object-fit: cover; border: 2px solid var(--accent); }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
+
+        .share-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .share-btn:hover { background: var(--accent); color: #000; }
 
         .media-container { position: relative; width: 100%; height: 340px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
         .media-container.locked img, .media-container.locked video { filter: blur(28px); transform: scale(1.15); pointer-events: none; }
         
         .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); }
-        .anti-leak-watermark { position: absolute; top: 40%; left: 10%; right: 10%; text-align: center; color: rgba(255, 255, 255, 0.25); font-size: 12px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; pointer-events: none; transform: rotate(-15deg); user-select: none; }
         .fomo-badge { position: absolute; top: 12px; left: 12px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; z-index: 10; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px var(--primary-glow); }
 
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 6, 12, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; text-align: center; }
@@ -94,22 +101,17 @@
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-actions { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
 
-        .goal-bar-container { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; margin-top: 16px; text-align: left; }
-        .goal-title-bar { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
-        .goal-progress-bg { background: var(--card-border); border-radius: 10px; height: 10px; overflow: hidden; }
-        .goal-progress-fill { background: var(--gradient-accent); height: 100%; width: 45%; border-radius: 10px; }
-
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         
+        /* Statutory Entry Gate Overlay */
+        .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; box-shadow: 0 0 30px var(--primary-glow); }
+
         .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
         .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
         .analytics-card h4 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .analytics-card p { font-size: 18px; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
-
-        .ledger-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; text-align: left; }
-        .ledger-table th, .ledger-table td { padding: 10px; border-bottom: 1px solid var(--card-border); }
-        .ledger-table th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
 
         .chat-box { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; height: 260px; overflow-y: auto; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
         .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 82%; line-height: 1.4; font-weight: 600; }
@@ -130,6 +132,23 @@
 </head>
 <body>
 
+    <!-- STATUTORY 18+ ENTRY AGE GATE -->
+    <div id="age-gate" class="age-gate-overlay">
+        <div class="age-gate-card">
+            <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" style="height:54px; width:54px; margin-bottom:12px;">
+                <path d="M 15 42 C 30 18, 70 18, 85 42 C 65 52, 35 52, 15 42 Z" stroke="#ff0055" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 20 42 C 40 68, 60 68, 80 42 C 60 82, 40 82, 20 42 Z" stroke="#ff0055" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 50 25 L 50 90" stroke="#00f0ff" stroke-width="6" stroke-linecap="round" />
+            </svg>
+            <h2 class="brand-name" style="font-size:24px; margin-bottom:8px;">HOME<span>STRIP</span></h2>
+            <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">
+                This platform contains adult entertainment & exclusive creator media restricted to legal adults only.
+            </p>
+            <button class="btn-primary" onclick="acceptAgeGate()">I am 18 or older — Enter 🔞</button>
+            <button class="btn-secondary" onclick="rejectAgeGate()">I am under 18 — Exit</button>
+        </div>
+    </div>
+
     <header>
         <div class="logo-container" onclick="checkAdminSecret()">
             <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -148,6 +167,12 @@
         <div id="referral-banner" style="display:none; background:rgba(0,240,255,0.1); border:1px solid var(--accent); padding:12px; border-radius:12px; margin-bottom:18px; font-size:12px; text-align:center;">
             🔗 Referred by Creator: <b id="ref-name" style="color:var(--accent);"></b>
         </div>
+        
+        <!-- Search Input Bar -->
+        <div class="search-container">
+            <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators, handles, or drops..." oninput="handleFeedSearch()">
+        </div>
+
         <div class="filter-bar">
             <button class="filter-chip active" onclick="filterFeed('All', this)">All</button>
             <button class="filter-chip" onclick="filterFeed('Video', this)">Videos 🎬</button>
@@ -237,7 +262,6 @@
                 <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Payouts & PPV</button>
             </div>
 
-            <!-- SECTION 1: Upload Media Studio -->
             <div id="studio-sec-upload" class="studio-section active">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Publish New Post & Drop 📤</h3>
@@ -274,7 +298,6 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: Live Broadcast Studio -->
             <div id="studio-sec-live" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Broadcast Studio</h3>
@@ -293,21 +316,12 @@
                 </div>
             </div>
 
-            <!-- SECTION 3: Profile Setup -->
             <div id="studio-sec-profile" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Creator Profile Setup 👤</h3>
                     <div class="form-group">
                         <label>Display Name</label>
                         <input type="text" id="creator-name" class="form-control" placeholder="e.g. Amara Vibe">
-                    </div>
-                    <div class="form-group">
-                        <label>Tip Goal Target (₦)</label>
-                        <input type="number" id="creator-goal-target" class="form-control" placeholder="50000">
-                    </div>
-                    <div class="form-group">
-                        <label>Tip Goal Description</label>
-                        <input type="text" id="creator-goal-desc" class="form-control" placeholder="Help fund my new 4K camera setup!">
                     </div>
                     <div class="form-group">
                         <label>Update Profile Picture (Avatar Image)</label>
@@ -317,7 +331,6 @@
                 </div>
             </div>
 
-            <!-- SECTION 4: STRICT KYC & LIVENESS VERIFICATION -->
             <div id="studio-sec-kyc" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
                     <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Strict Creator Verification (18+)</h3>
@@ -363,7 +376,6 @@
                 </div>
             </div>
 
-            <!-- SECTION 5: Payouts, Ledger & PPV Studio -->
             <div id="studio-sec-payout" class="studio-section">
                 <button class="btn-accent" style="margin-bottom: 18px;" onclick="requestPayout()">Request Payout Withdrawal 💸</button>
                 
@@ -378,26 +390,6 @@
                         <input type="number" id="ppv-price" class="form-control" value="3000">
                     </div>
                     <button class="btn-secondary" onclick="broadcastPPV()">Send Mass DM to All Subscribers</button>
-                </div>
-
-                <!-- Earnings Ledger Table -->
-                <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px; margin-bottom: 22px;">
-                    <h3 style="font-size: 15px; color: var(--accent); margin-bottom: 8px;">Earnings & Payout Ledger 📊</h3>
-                    <table class="ledger-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Gross</th>
-                                <th>Net (85%)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ledger-body">
-                            <tr>
-                                <td colspan="4" style="text-align:center; color:var(--text-muted);">No transaction logs recorded yet.</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
 
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
@@ -551,17 +543,30 @@
         let supabaseClient = null;
         let activeCreatorForAction = null;
         let currentCategoryFilter = 'All';
+        let searchQuery = '';
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
         let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '{}');
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
         let creatorAvatars = JSON.parse(localStorage.getItem('creator_avatars') || '{}');
-        let creatorGoals = JSON.parse(localStorage.getItem('creator_goals') || '{}');
-        let transactionLedger = JSON.parse(localStorage.getItem('transaction_ledger') || '[]');
         let activeLiveStream = JSON.parse(localStorage.getItem('active_live_stream') || 'null');
 
         let kycCameraStream = null;
         let kycPassedSteps = [false, false, false];
+
+        // Check age gate on load
+        if(localStorage.getItem('age_verified_18') === 'true') {
+            document.getElementById('age-gate').style.display = 'none';
+        }
+
+        function acceptAgeGate() {
+            localStorage.setItem('age_verified_18', 'true');
+            document.getElementById('age-gate').style.display = 'none';
+        }
+
+        function rejectAgeGate() {
+            window.location.href = "https://www.google.com";
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const refParam = urlParams.get('ref');
@@ -621,7 +626,6 @@
             if(targetBtn) targetBtn.classList.add('active');
 
             localStorage.setItem('last_active_studio_sec', sec);
-            if(sec === 'payout') renderLedger();
         }
 
         function checkReferralBanner() {
@@ -731,29 +735,6 @@
             }
         }
 
-        function recordTransaction(type, grossAmount) {
-            const dateStr = new Date().toLocaleDateString('en-GB');
-            const netAmount = Math.floor(grossAmount * 0.85);
-            transactionLedger.unshift({ date: dateStr, type: type, gross: grossAmount, net: netAmount });
-            localStorage.setItem('transaction_ledger', JSON.stringify(transactionLedger));
-        }
-
-        function renderLedger() {
-            const tbody = document.getElementById('ledger-body');
-            if(transactionLedger.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No transaction logs recorded yet.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = transactionLedger.map(t => `
-                <tr>
-                    <td>${t.date}</td>
-                    <td><b>${t.type}</b></td>
-                    <td>₦${Number(t.gross).toLocaleString()}</td>
-                    <td style="color:var(--accent); font-weight:800;">₦${Number(t.net).toLocaleString()}</td>
-                </tr>
-            `).join('');
-        }
-
         function requestPayout() {
             const netBal = document.getElementById('net-balance').innerText;
             alert(`Payout Request Submitted!\n\nYour net balance of ${netBal} has been queued for transfer to your verified bank account (85/15 split applied).`);
@@ -843,16 +824,8 @@
 
         async function saveCreatorProfile() {
             const name = document.getElementById('creator-name').value;
-            const goalTarget = document.getElementById('creator-goal-target').value;
-            const goalDesc = document.getElementById('creator-goal-desc').value;
             const avatarInput = document.getElementById('avatar-file-input');
-
             if(!name) return alert('Enter a display name.');
-
-            if(goalTarget && goalDesc) {
-                creatorGoals[name] = { target: Number(goalTarget), raised: creatorGoals[name] ? creatorGoals[name].raised : 0, desc: goalDesc };
-                localStorage.setItem('creator_goals', JSON.stringify(creatorGoals));
-            }
 
             if(avatarInput.files && avatarInput.files.length > 0) {
                 try {
@@ -863,7 +836,7 @@
                     return alert('Failed to upload profile picture: ' + err.message);
                 }
             }
-            alert('Profile & Tip Goal settings saved successfully!');
+            alert('Profile updated successfully!');
         }
 
         function renderChatInbox() {
@@ -877,7 +850,7 @@
                 if(m.sender === 'ppv') {
                     box.innerHTML += `
                         <div class="chat-bubble ppv">
-                            <b>⚡ PPV Mass DM Drop:</b> ${m.text}
+                            <b>⚡ PPV Mass DM:</b> ${m.text}
                             <div style="margin-top:8px;"><button class="btn-unlock" style="width:100%; padding:8px;" onclick="payWithPaystack(${m.price}, 'Unlock PPV DM', null, () => alert('PPV Unlocked!'))">Unlock Locked Drop (₦${Number(m.price).toLocaleString()})</button></div>
                         </div>
                     `;
@@ -945,6 +918,11 @@
             }
         }
 
+        function handleFeedSearch() {
+            searchQuery = document.getElementById('feed-search-input').value.toLowerCase();
+            displayPosts(cachedPosts);
+        }
+
         function filterFeed(category, btn) {
             currentCategoryFilter = category;
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -962,20 +940,32 @@
             displayPosts(posts);
         }
 
+        function sharePost(creatorName, caption) {
+            const shareUrl = window.location.href.split('?')[0] + `?ref=${creatorName.toLowerCase().replace(/\s+/g, '')}`;
+            if (navigator.share) {
+                navigator.share({ title: `Exclusive drop by ${creatorName} on HOME STRIP`, text: caption, url: shareUrl });
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                alert('🔗 Direct share link copied to clipboard!');
+            }
+        }
+
         function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
 
-            if(activeLiveStream) {
+            if(activeLiveStream && (!searchQuery || activeLiveStream.creator.toLowerCase().includes(searchQuery))) {
                 const liveCard = document.createElement('div');
                 liveCard.className = 'post-card';
                 liveCard.style.border = '1px solid var(--primary)';
                 liveCard.innerHTML = `
                     <div class="post-header">
-                        <div class="avatar" style="background:var(--gradient-accent);">🔴</div>
-                        <div class="creator-info">
-                            <h4>${activeLiveStream.creator} is LIVE!</h4>
-                            <span>RTMP Mobile Stream • <b style="color:var(--accent);">Broadcasting Live</b></span>
+                        <div class="post-header-left">
+                            <div class="avatar" style="background:var(--gradient-accent);">🔴</div>
+                            <div class="creator-info">
+                                <h4>${activeLiveStream.creator} is LIVE!</h4>
+                                <span>RTMP Mobile Stream • <b style="color:var(--accent);">Broadcasting Live</b></span>
+                            </div>
                         </div>
                     </div>
                     <div style="padding:22px; text-align:center; background:rgba(18, 12, 24, 0.95);">
@@ -987,8 +977,16 @@
                 container.appendChild(liveCard);
             }
 
-            const filtered = currentCategoryFilter === 'All' ? posts : posts.filter(p => p.category === currentCategoryFilter);
-            if(filtered.length === 0 && !activeLiveStream) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No posts found.</p>`; return; }
+            let filtered = currentCategoryFilter === 'All' ? posts : posts.filter(p => p.category === currentCategoryFilter);
+            if(searchQuery) {
+                filtered = filtered.filter(p => 
+                    (p.name && p.name.toLowerCase().includes(searchQuery)) ||
+                    (p.handle && p.handle.toLowerCase().includes(searchQuery)) ||
+                    (p.caption && p.caption.toLowerCase().includes(searchQuery))
+                );
+            }
+
+            if(filtered.length === 0 && !activeLiveStream) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops matching your query.</p>`; return; }
 
             filtered.forEach(post => {
                 const isSubbed = activeSubscriptions[post.name];
@@ -998,18 +996,20 @@
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
-                    <div class="post-header" style="cursor:pointer;" onclick="openProfile('${post.name}', '${post.handle}')">
-                        <div class="avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="Avatar">` : initial}</div>
-                        <div class="creator-info">
-                            <h4>${post.name}</h4>
-                            <span>${post.handle} • <b style="color:var(--accent);">${post.category || 'Exclusive'}</b></span>
+                    <div class="post-header">
+                        <div class="post-header-left" style="cursor:pointer;" onclick="openProfile('${post.name}', '${post.handle}')">
+                            <div class="avatar">${avatarUrl ? `<img src="${avatarUrl}" alt="Avatar">` : initial}</div>
+                            <div class="creator-info">
+                                <h4>${post.name}</h4>
+                                <span>${post.handle} • <b style="color:var(--accent);">${post.category || 'Exclusive'}</b></span>
+                            </div>
                         </div>
+                        <button class="share-btn" onclick="sharePost('${post.name}', '${post.caption}')">🔗 Share</button>
                     </div>
                     <div class="media-container ${isUnlocked ? '' : 'locked'}">
                         ${post.expiration && post.expiration > 0 ? `<div class="fomo-badge">⏳ Limited Drop (${post.expiration}h)</div>` : ''}
                         ${renderMediaHTML(post.media, isUnlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span> • EXCLUSIVE</div>
-                        ${isUnlocked ? `<div class="anti-leak-watermark">HOME STRIP • PROTECTED CONTENT</div>` : ''}
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
@@ -1051,7 +1051,6 @@
                     <div class="media-container">
                         ${renderMediaHTML(post.media, true)}
                         <div class="watermark brand-name">HOME<span>STRIP</span> • UNLOCKED</div>
-                        <div class="anti-leak-watermark">HOME STRIP • PROTECTED CONTENT</div>
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -1071,28 +1070,11 @@
             activeCreatorForAction = name;
             const client = getSupabase();
             const avatarUrl = creatorAvatars[name];
-            const goalData = creatorGoals[name];
             const initial = name.charAt(0).toUpperCase();
             const isSubbed = activeSubscriptions[name];
 
             const currentUrl = window.location.href.split('?')[0];
             const refLink = `${currentUrl}?ref=${name.toLowerCase().replace(/\s+/g, '')}`;
-
-            let goalHtml = '';
-            if(goalData) {
-                const percent = Math.min(100, Math.floor((goalData.raised / goalData.target) * 100));
-                goalHtml = `
-                    <div class="goal-bar-container">
-                        <div class="goal-title-bar">
-                            <span>🎯 Goal: ${goalData.desc}</span>
-                            <span>₦${Number(goalData.raised).toLocaleString()} / ₦${Number(goalData.target).toLocaleString()} (${percent}%)</span>
-                        </div>
-                        <div class="goal-progress-bg">
-                            <div class="goal-progress-fill" style="width:${percent}%;"></div>
-                        </div>
-                    </div>
-                `;
-            }
 
             document.getElementById('profile-header-container').innerHTML = `
                 <div class="profile-card">
@@ -1100,7 +1082,6 @@
                     <h2>${name}</h2>
                     <p style="color:var(--text-muted); font-size:14px;">${handle}</p>
                     <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Verified Creator on <span class="brand-name">HOME<span>STRIP</span></span>.</p>
-                    ${goalHtml}
                     <div style="margin: 16px 0;">
                         ${isSubbed ? `<span style="color:var(--accent); font-weight:800; font-size:13px;">👑 VIP Subscriber (All Content Unlocked)</span>` : `
                             <div style="display:flex; flex-direction:column; gap:10px;">
@@ -1131,7 +1112,6 @@
                     <div class="media-container ${unlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, unlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span> • EXCLUSIVE</div>
-                        ${unlocked ? `<div class="anti-leak-watermark">HOME STRIP • PROTECTED CONTENT</div>` : ''}
                         ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, 'Unlock Post',${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
@@ -1144,7 +1124,6 @@
             payWithPaystack(price, `${tierName} Subscription to ${creatorName}`, null, (ref) => {
                 activeSubscriptions[creatorName] = true;
                 localStorage.setItem('active_subscriptions', JSON.stringify(activeSubscriptions));
-                recordTransaction(`Subscription (${tierName})`, price);
                 alert(`Successfully subscribed to ${creatorName} (${tierName})! All profile content is now unlocked.`);
                 openProfile(creatorName, "@" + creatorName.toLowerCase().replace(/\s+/g, ''));
             });
@@ -1154,20 +1133,13 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         function processTip() {
-            const amount = Number(document.getElementById('tip-amount').value || 1000);
+            const amount = document.getElementById('tip-amount').value || 1000;
             closeModal('tip-modal');
-            payWithPaystack(amount, `Tip for ${activeCreatorForAction}`, null, () => {
-                if(creatorGoals[activeCreatorForAction]) {
-                    creatorGoals[activeCreatorForAction].raised += amount;
-                    localStorage.setItem('creator_goals', JSON.stringify(creatorGoals));
-                }
-                recordTransaction('Creator Tip', amount);
-                openProfile(activeCreatorForAction, "@" + activeCreatorForAction.toLowerCase().replace(/\s+/g, ''));
-            });
+            payWithPaystack(amount, `Tip for ${activeCreatorForAction}`);
         }
 
         async function processPrivateChat() {
-            const price = Number(document.getElementById('chat-price').value || 5000);
+            const price = document.getElementById('chat-price').value || 5000;
             const message = document.getElementById('chat-message').value;
             if(!message) return alert('Please enter your request message.');
             closeModal('chat-modal');
@@ -1176,7 +1148,6 @@
                 const client = getSupabase();
                 chatMessages.push({ sender: 'fan', text: `[Paid Request - ₦${price}] ${message}` });
                 localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
-                recordTransaction('Custom Private Request', price);
 
                 if(client) {
                     await client.from('requests').insert([{
@@ -1265,7 +1236,6 @@
                 currency: 'NGN',
                 callback: function(response){ 
                     alert((customNote || 'Payment') + ' successful! Ref: ' + response.reference);
-                    recordTransaction(customNote || 'Post Unlock', price);
                     if(postId) {
                         if(!unlockedPostIds.includes(postId)) {
                             unlockedPostIds.push(postId);
