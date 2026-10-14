@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOME STRIP | Creator Ecosystem</title>
+    <title>HOME STRIP | 18+ Creator Ecosystem & Video Drops</title>
+    <!-- SEO Meta Tags for Name Ranking -->
+    <meta name="description" content="HOME STRIP is the ultimate 18+ creator ecosystem, video drop platform, and live broadcasting network in Nigeria.">
+    <meta name="keywords" content="Home Strip, homestrip, creator platform, adult content, video drops, paystack creators">
+    <meta property="og:title" content="HOME STRIP | Creator Ecosystem">
+    <meta property="og:description" content="Unlock exclusive content from top verified creators on HOME STRIP.">
+    
     <!-- Google Site Verification -->
     <meta name="google-site-verification" content="GW5ngo00k979WFEXCAW2nVaVAzAImCnqfFC88_vZ3a0" />
     
@@ -31,7 +37,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; background-image: radial-gradient(circle at 50% 0%, rgba(255, 0, 85, 0.18), transparent 65%); }
         
-        /* Branded Stylized App Name */
         .brand-name { font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
         .brand-name span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
         
@@ -73,8 +78,10 @@
         .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
-        .share-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-        .share-btn:hover { background: var(--accent); color: #000; }
+        .post-actions-top { display: flex; gap: 6px; align-items: center; }
+        .action-icon-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .action-icon-btn.saved { color: var(--primary); border-color: var(--primary); }
+        .action-icon-btn:hover { background: var(--accent); color: #000; }
 
         .media-container { position: relative; width: 100%; height: 340px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
@@ -110,6 +117,9 @@
         .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; box-shadow: 0 0 30px var(--primary-glow); }
 
+        /* Live Notification Toast */
+        .notification-toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); background: var(--card-bg); border: 1px solid var(--accent); padding: 12px 20px; border-radius: 30px; z-index: 1000; display: none; align-items: center; gap: 10px; box-shadow: 0 0 20px var(--accent-glow); animation: fadeInOut 4s ease; font-size: 12px; font-weight: 800; }
+
         .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
         .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
         .analytics-card h4 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -127,12 +137,16 @@
         .settings-item span { color: var(--text-muted); font-size: 13px; }
 
         .upload-status { font-size: 12px; color: var(--accent); margin-top: 8px; display: none; font-weight: 700; }
-        
         .kyc-step { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); padding: 14px; border-radius: 10px; margin-bottom: 10px; text-align: left; font-size: 13px; font-weight: 700; }
         .kyc-step.passed { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
     </style>
 </head>
 <body>
+
+    <!-- Live Notification Toast -->
+    <div id="live-toast" class="notification-toast">
+        <span>🔥</span> <span id="toast-msg">New creator drop published!</span>
+    </div>
 
     <div id="age-gate" class="age-gate-overlay">
         <div class="age-gate-card">
@@ -178,6 +192,7 @@
             <button class="filter-chip" onclick="filterFeed('Video', this)">Videos 🎬</button>
             <button class="filter-chip" onclick="filterFeed('Exclusive', this)">Exclusive 💎</button>
             <button class="filter-chip" onclick="filterFeed('VIP', this)">VIP ⭐</button>
+            <button class="filter-chip" onclick="filterFeed('Saved', this)">Saved ❤️</button>
         </div>
         <div id="posts-container" style="margin-top: 15px;">
             <p style="text-align: center; color: var(--text-muted); padding: 20px;">Loading global feed...</p>
@@ -437,7 +452,7 @@
                 <span>›</span>
             </div>
             <div class="settings-item" onclick="openPolicyModal('compliance')">
-                <span>18+ Adult Compliance (2257)</span>
+                <span>18+ Adult Content Compliance (2257)</span>
                 <span>›</span>
             </div>
             <div class="settings-item" onclick="openPolicyModal('support')">
@@ -546,6 +561,7 @@
         let searchQuery = '';
         let cachedPosts = [];
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
+        let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
         let activeSubscriptions = JSON.parse(localStorage.getItem('active_subscriptions') || '{}');
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
         let creatorAvatars = JSON.parse(localStorage.getItem('creator_avatars') || '{}');
@@ -633,6 +649,13 @@
                 document.getElementById('referral-banner').style.display = 'block';
                 document.getElementById('ref-name').innerText = "@" + ref;
             }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('live-toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
         }
 
         let logoClicks = 0;
@@ -806,7 +829,7 @@
             const creatorName = document.getElementById('creator-name').value || "Verified Creator";
             activeLiveStream = { creator: creatorName, price: 5000 };
             localStorage.setItem('active_live_stream', JSON.stringify(activeLiveStream));
-            alert('🔴 Live Stream Banner Published! Fans can now purchase tickets and watch your broadcast from the feed.');
+            showToast(`🔴 ${creatorName} went LIVE on HOME STRIP!`);
             switchTab('feed');
         }
 
@@ -867,7 +890,7 @@
             
             chatMessages.push({ sender: 'ppv', text: msg, price: price });
             localStorage.setItem('chat_messages', JSON.stringify(chatMessages));
-            alert('PPV Mass DM broadcasted to all subscriber chats successfully!');
+            showToast('⚡ New PPV Mass DM dropped in your inbox!');
             switchTab('messages');
         }
 
@@ -939,6 +962,19 @@
             displayPosts(posts);
         }
 
+        function toggleSavePost(postId) {
+            const index = savedPostIds.indexOf(postId);
+            if(index > -1) {
+                savedPostIds.splice(index, 1);
+                showToast('Removed from Saved Library');
+            } else {
+                savedPostIds.push(postId);
+                showToast('❤️ Saved to your Favorites Library!');
+            }
+            localStorage.setItem('saved_posts', JSON.stringify(savedPostIds));
+            displayPosts(cachedPosts);
+        }
+
         function sharePost(creatorName, caption) {
             const shareUrl = window.location.href.split('?')[0] + `?ref=${creatorName.toLowerCase().replace(/\s+/g, '')}`;
             if (navigator.share) {
@@ -953,7 +989,7 @@
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
 
-            if(activeLiveStream && (!searchQuery || activeLiveStream.creator.toLowerCase().includes(searchQuery))) {
+            if(activeLiveStream && currentCategoryFilter !== 'Saved' && (!searchQuery || activeLiveStream.creator.toLowerCase().includes(searchQuery))) {
                 const liveCard = document.createElement('div');
                 liveCard.className = 'post-card';
                 liveCard.style.border = '1px solid var(--primary)';
@@ -976,7 +1012,13 @@
                 container.appendChild(liveCard);
             }
 
-            let filtered = currentCategoryFilter === 'All' ? posts : posts.filter(p => p.category === currentCategoryFilter);
+            let filtered = posts;
+            if(currentCategoryFilter === 'Saved') {
+                filtered = posts.filter(p => savedPostIds.includes(p.id));
+            } else if(currentCategoryFilter !== 'All') {
+                filtered = posts.filter(p => p.category === currentCategoryFilter);
+            }
+
             if(searchQuery) {
                 filtered = filtered.filter(p => 
                     (p.name && p.name.toLowerCase().includes(searchQuery)) ||
@@ -985,11 +1027,15 @@
                 );
             }
 
-            if(filtered.length === 0 && !activeLiveStream) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops matching your query.</p>`; return; }
+            if(filtered.length === 0 && !activeLiveStream) { 
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops matching your query.</p>`; 
+                return; 
+            }
 
             filtered.forEach(post => {
                 const isSubbed = activeSubscriptions[post.name];
                 const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
+                const isSaved = savedPostIds.includes(post.id);
                 const avatarUrl = creatorAvatars[post.name];
                 const initial = post.name ? post.name.charAt(0).toUpperCase() : 'C';
                 const card = document.createElement('div');
@@ -1003,7 +1049,10 @@
                                 <span>${post.handle} • <b style="color:var(--accent);">${post.category || 'Exclusive'}</b></span>
                             </div>
                         </div>
-                        <button class="share-btn" onclick="sharePost('${post.name}', '${post.caption}')">🔗 Share</button>
+                        <div class="post-actions-top">
+                            <button class="action-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleSavePost(${post.id})">${isSaved ? '❤️ Saved' : '🤍 Save'}</button>
+                            <button class="action-icon-btn" onclick="sharePost('${post.name}', '${post.caption}')">🔗 Share</button>
+                        </div>
                     </div>
                     <div class="media-container ${isUnlocked ? '' : 'locked'}">
                         ${post.expiration && post.expiration > 0 ? `<div class="fomo-badge">⏳ Limited Drop (${post.expiration}h)</div>` : ''}
@@ -1219,7 +1268,7 @@
 
             if (error) alert('Publishing failed: ' + error.message);
             else {
-                alert('Published live! Subscriber email alerts dispatched.');
+                showToast(`🚀 New drop published by ${name}!`);
                 document.getElementById('post-caption-input').value = '';
                 fileInput.value = '';
                 switchTab('feed');
