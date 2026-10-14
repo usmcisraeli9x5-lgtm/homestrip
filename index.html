@@ -63,7 +63,8 @@
         .post-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 22px; position: relative; }
         .post-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
         .post-header-left { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; border: 2px solid var(--accent); }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; border: 2px solid var(--accent); overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
@@ -91,6 +92,7 @@
 
         .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; }
         .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
         .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
@@ -112,9 +114,6 @@
 
         .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; }
-        
-        .kyc-step { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); padding: 14px; border-radius: 10px; margin-bottom: 10px; text-align: left; font-size: 13px; font-weight: 700; }
-        .kyc-step.passed { border-color: var(--accent); color: var(--accent); }
     </style>
 </head>
 <body>
@@ -269,9 +268,10 @@
 
             <div id="studio-sec-profile" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Profile Setup</h3>
-                    <div class="form-group"><label>Display Name</label><input type="text" class="form-control" value="Lord Enzo"></div>
-                    <button class="btn-primary" onclick="alert('Profile saved!')">Save Profile</button>
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Profile Picture & Setup</h3>
+                    <div class="form-group"><label>Display Name</label><input type="text" id="profile-display-name" class="form-control" value="Lord Enzo"></div>
+                    <div class="form-group"><label>Profile Image File</label><input type="file" id="avatar-file-input" class="form-control" accept="image/*"></div>
+                    <button class="btn-primary" onclick="saveProfilePicture()">Save Profile Picture</button>
                 </div>
             </div>
 
@@ -345,6 +345,7 @@
         let unlockedPostIds = JSON.parse(localStorage.getItem('unlocked_posts') || '[]');
         let savedPostIds = JSON.parse(localStorage.getItem('saved_posts') || '[]');
         let chatMessages = JSON.parse(localStorage.getItem('chat_messages') || '[]');
+        let userProfileAvatar = localStorage.getItem('user_profile_avatar') || '';
 
         if(localStorage.getItem('age_verified_18') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
@@ -520,7 +521,7 @@
                 card.innerHTML = `
                     <div class="post-header">
                         <div class="post-header-left" style="cursor:pointer;" onclick="openProfile('${post.name}', '${post.handle}')">
-                            <div class="avatar">${post.name ? post.name.charAt(0).toUpperCase() : 'C'}</div>
+                            <div class="avatar">${post.avatar ? `<img src="${post.avatar}">` : (post.name ? post.name.charAt(0).toUpperCase() : 'C')}</div>
                             <div class="creator-info">
                                 <h4>${post.name || 'Creator'}</h4>
                                 <span>@${(post.name || 'creator').toLowerCase().replace(/\s+/g, '')} • <b style="color:var(--accent);">${post.category || 'Exclusive'}</b></span>
@@ -537,7 +538,7 @@
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
-                                <button class="btn-unlock" onclick="payWithPaystack(${post.price}, ${post.id})">Unlock Content</button>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock Content</button>
                             </div>
                         ` : ''}
                     </div>
@@ -552,9 +553,11 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('profile-view').classList.add('active');
             const { data: posts } = await supabaseClient.from('posts').select('*').eq('name', name);
+            
+            const avatarImg = userProfileAvatar ? `<img src="${userProfileAvatar}">` : name.charAt(0).toUpperCase();
             document.getElementById('profile-header-container').innerHTML = `
                 <div class="profile-card">
-                    <div class="profile-avatar">${name.charAt(0).toUpperCase()}</div>
+                    <div class="profile-avatar">${avatarImg}</div>
                     <h2>${name}</h2>
                     <p style="color:var(--text-muted); font-size:14px;">${handle || '@' + name.toLowerCase()}</p>
                 </div>
@@ -570,7 +573,7 @@
                     <div class="media-container ${unlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, unlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span></div>
-                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, ${post.id})">Unlock</button></div>` : ''}
+                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -580,7 +583,10 @@
 
         async function renderUnlockedLibrary() {
             const container = document.getElementById('unlocked-posts-container');
-            if(unlockedPostIds.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>'; return; }
+            if(unlockedPostIds.length === 0) { 
+                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`; 
+                return; 
+            }
             const { data: posts } = await supabaseClient.from('posts').select('*').in('id', unlockedPostIds);
             container.innerHTML = '';
             if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts found.</p>`; return; }
@@ -630,6 +636,18 @@
             });
         }
 
+        async function saveProfilePicture() {
+            const avatarInput = document.getElementById('avatar-file-input');
+            if(!avatarInput.files || avatarInput.files.length === 0) return alert('Select an image file first.');
+            try {
+                userProfileAvatar = await fileToDataURL(avatarInput.files[0]);
+                localStorage.setItem('user_profile_avatar', userProfileAvatar);
+                alert('Profile Picture Saved Successfully! 🎉');
+            } catch(e) {
+                alert('Failed to process image: ' + e.message);
+            }
+        }
+
         async function createPost() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             const name = document.getElementById('creator-name').value || "Lord Enzo";
@@ -657,15 +675,24 @@
             const newPost = {
                 user_id: session ? session.user.id : null,
                 name: name,
-                handle: "@" + name.toLowerCase().replace(/\s+/g, ''),
-                category: category,
                 caption: caption,
                 price: Number(price),
                 media: mediaUrl,
                 unlocked: false
             };
 
-            const { error } = await supabaseClient.from('posts').insert([newPost]);
+            let { error } = await supabaseClient.from('posts').insert([{
+                ...newPost,
+                handle: "@" + name.toLowerCase().replace(/\s+/g, ''),
+                category: category,
+                avatar: userProfileAvatar
+            }]);
+
+            if (error && error.message.includes('column')) {
+                const retry = await supabaseClient.from('posts').insert([newPost]);
+                error = retry.error;
+            }
+
             uploadStatus.style.display = 'none';
             publishBtn.disabled = false;
 
