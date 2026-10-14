@@ -270,7 +270,7 @@
                     <div class="form-group">
                         <label>Upload Media File</label>
                         <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
-                        <div id="upload-status" class="upload-status" style="display:none; color:var(--accent); font-size:12px; margin-top:6px;">Uploading file to Media Bucket...</div>
+                        <div id="upload-status" class="upload-status" style="display:none; color:var(--accent); font-size:12px; margin-top:6px; font-weight:700;">Uploading file to Media Bucket...</div>
                     </div>
                     <button class="btn-primary" id="publish-btn" onclick="createPost()">Publish Content Live</button>
                 </div>
@@ -327,7 +327,7 @@
         <div class="modal-body" style="text-align: left;">
             <h3 style="margin-bottom: 12px; color: var(--accent);">Protected Developer Keys ⚙️</h3>
             <div class="form-group"><label>Supabase URL</label><input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co"></div>
-            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6InFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
+            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
             <div class="form-group"><label>Paystack Public Key</label><input type="text" id="config-paystack" class="form-control" value="pk_live_e28e80eb3c55079272d529568d6946bf6"></div>
             <button class="btn-primary" onclick="saveDeveloperConfig()">Save & Reconnect</button>
             <button class="btn-secondary" onclick="closeModal('admin-config-modal')">Close</button>
@@ -352,7 +352,7 @@
 
     <script>
         let SUPABASE_URL = localStorage.getItem('custom_supabase_url') || "https://vypsemwlbomslczvnxix.supabase.co";
-        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6InFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
+        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
         let PAYSTACK_PUB_KEY = localStorage.getItem('custom_paystack_key') || "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
         let supabaseClient = null;
@@ -459,9 +459,15 @@
             mediaRecorder.onstop = async () => {
                 const blob = new Blob(recordedChunks, { type: 'video/mp4' });
                 const file = new File([blob], `recorded_${Date.now()}.mp4`, { type: 'video/mp4' });
-                const recordingUrl = await uploadToStorage(file);
-                const caption = prompt("Enter drop caption:", "Phone Camera Drop 📱");
                 
+                const uploadStatus = document.getElementById('upload-status');
+                uploadStatus.innerText = "Uploading recorded video to Cloud Bucket...";
+                uploadStatus.style.display = 'block';
+
+                const recordingUrl = await uploadToStorage(file);
+                uploadStatus.style.display = 'none';
+
+                const caption = prompt("Enter drop caption:", "Phone Camera Drop 📱");
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if(caption && recordingUrl) {
                     const newPost = {
@@ -497,7 +503,7 @@
 
             let { error: uploadError } = await supabaseClient.storage.from('Media').upload(filePath, file);
             if(uploadError) {
-                console.warn("Storage Bucket Upload Fallback:", uploadError.message);
+                console.warn("Storage Bucket Upload Fallback (Ensure Storage Policies permit upload):", uploadError.message);
                 return await fileToDataURL(file);
             }
 
@@ -863,6 +869,7 @@
 
             let mediaUrl = "";
             try {
+                uploadStatus.innerText = "Uploading media file to Cloud Bucket...";
                 uploadStatus.style.display = 'block';
                 publishBtn.disabled = true;
                 mediaUrl = await uploadToStorage(fileInput.files[0]);
