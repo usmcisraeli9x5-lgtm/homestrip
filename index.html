@@ -176,7 +176,7 @@
     </div>
 
     <div id="messages-view" class="view">
-        <h2 style="margin-bottom: 15px;">Direct Messages & Database Chat 💬</h2>
+        <h2 style="margin-bottom: 15px;">Direct Messages & Realtime Chat 💬</h2>
         <div class="chat-box" id="global-chat-box"></div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display:flex; gap:8px;">
@@ -270,7 +270,7 @@
                     <div class="form-group">
                         <label>Upload Media File</label>
                         <input type="file" id="media-file-input" class="form-control" accept="image/*,video/*">
-                        <div id="upload-status" class="upload-status" style="display:none; color:var(--accent); font-size:12px; margin-top:6px;">Processing media file...</div>
+                        <div id="upload-status" class="upload-status" style="display:none; color:var(--accent); font-size:12px; margin-top:6px;">Uploading file to Media Bucket...</div>
                     </div>
                     <button class="btn-primary" id="publish-btn" onclick="createPost()">Publish Content Live</button>
                 </div>
@@ -288,7 +288,7 @@
                     </div>
                     <div style="display:flex; gap:8px;">
                         <button class="btn-primary" id="record-start-btn" onclick="startRecordingVideo()">● Start Recording</button>
-                        <button class="btn-secondary" id="record-stop-btn" style="display:none;" onclick="stopRecordingVideo()">⏹ Stop & Save</button>
+                        <button class="btn-secondary" id="record-stop-btn" style="display:none;" onclick="stopRecordingVideo()">⏹ Stop & Upload</button>
                     </div>
                 </div>
             </div>
@@ -327,7 +327,7 @@
         <div class="modal-body" style="text-align: left;">
             <h3 style="margin-bottom: 12px; color: var(--accent);">Protected Developer Keys ⚙️</h3>
             <div class="form-group"><label>Supabase URL</label><input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co"></div>
-            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
+            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6InFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
             <div class="form-group"><label>Paystack Public Key</label><input type="text" id="config-paystack" class="form-control" value="pk_live_e28e80eb3c55079272d529568d6946bf6"></div>
             <button class="btn-primary" onclick="saveDeveloperConfig()">Save & Reconnect</button>
             <button class="btn-secondary" onclick="closeModal('admin-config-modal')">Close</button>
@@ -352,7 +352,7 @@
 
     <script>
         let SUPABASE_URL = localStorage.getItem('custom_supabase_url') || "https://vypsemwlbomslczvnxix.supabase.co";
-        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
+        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6InFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA4NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
         let PAYSTACK_PUB_KEY = localStorage.getItem('custom_paystack_key') || "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
         let supabaseClient = null;
@@ -400,7 +400,17 @@
             if(localStorage.getItem('custom_supabase_url')) document.getElementById('config-url').value = localStorage.getItem('custom_supabase_url');
             if(localStorage.getItem('custom_supabase_key')) document.getElementById('config-key').value = localStorage.getItem('custom_supabase_key');
             if(localStorage.getItem('custom_paystack_key')) document.getElementById('config-paystack').value = localStorage.getItem('custom_paystack_key');
+            setupRealtimeSubscriptions();
         });
+
+        function setupRealtimeSubscriptions() {
+            if(!supabaseClient) return;
+            supabaseClient.channel('public-updates')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => { renderChatInbox(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => { renderFeed(); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => { renderFeed(); })
+                .subscribe();
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -448,10 +458,14 @@
             mediaRecorder.ondataavailable = e => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = async () => {
                 const blob = new Blob(recordedChunks, { type: 'video/mp4' });
-                const recordingUrl = await fileToDataURL(blob);
+                const file = new File([blob], `recorded_${Date.now()}.mp4`, { type: 'video/mp4' });
+                const recordingUrl = await uploadToStorage(file);
                 const caption = prompt("Enter drop caption:", "Phone Camera Drop 📱");
-                if(caption) {
+                
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if(caption && recordingUrl) {
                     const newPost = {
+                        user_id: session ? session.user.id : null,
                         name: "Lord Enzo",
                         caption: caption,
                         price: 3000,
@@ -460,7 +474,7 @@
                         unlocked: false
                     };
                     await supabaseClient.from('posts').insert([newPost]);
-                    alert("Recorded video published live!");
+                    alert("Recorded video uploaded to Media Bucket and published live!");
                     switchTab('feed');
                 }
             };
@@ -473,6 +487,22 @@
             if(mediaRecorder) mediaRecorder.stop();
             document.getElementById('record-start-btn').style.display = 'block';
             document.getElementById('record-stop-btn').style.display = 'none';
+        }
+
+        async function uploadToStorage(file) {
+            if(!supabaseClient) return null;
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+            const filePath = `drops/${fileName}`;
+
+            let { error: uploadError } = await supabaseClient.storage.from('Media').upload(filePath, file);
+            if(uploadError) {
+                console.warn("Storage Bucket Upload Fallback:", uploadError.message);
+                return await fileToDataURL(file);
+            }
+
+            const { data } = supabaseClient.storage.from('Media').getPublicUrl(filePath);
+            return data.publicUrl;
         }
 
         function openPolicyModal(type) {
@@ -616,7 +646,6 @@
                 const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked || isSubbed;
                 const isSaved = savedPostIds.includes(post.id);
 
-                // Fetch comments for this post
                 const { data: comments } = await supabaseClient.from('comments').select('*').eq('post_id', post.id).order('id', { ascending: false });
 
                 const card = document.createElement('div');
@@ -778,7 +807,8 @@
             const price = document.getElementById('dm-drop-price').value || 1500;
             const fileInput = document.getElementById('dm-drop-file');
             if(!fileInput.files || fileInput.files.length === 0) return alert('Select media file for PPV message.');
-            const mediaUrl = await fileToDataURL(fileInput.files[0]);
+            
+            const mediaUrl = await uploadToStorage(fileInput.files[0]);
             await supabaseClient.from('messages').insert([{
                 sender: 'creator',
                 is_paywalled: true,
@@ -810,7 +840,7 @@
             const avatarInput = document.getElementById('avatar-file-input');
             if(!avatarInput.files || avatarInput.files.length === 0) return alert('Select an image file first.');
             try {
-                userProfileAvatar = await fileToDataURL(avatarInput.files[0]);
+                userProfileAvatar = await uploadToStorage(avatarInput.files[0]);
                 localStorage.setItem('user_profile_avatar', userProfileAvatar);
                 alert('Profile Picture Saved Successfully! 🎉');
             } catch(e) {
@@ -835,7 +865,7 @@
             try {
                 uploadStatus.style.display = 'block';
                 publishBtn.disabled = true;
-                mediaUrl = await fileToDataURL(fileInput.files[0]);
+                mediaUrl = await uploadToStorage(fileInput.files[0]);
             } catch(err) {
                 uploadStatus.style.display = 'none';
                 publishBtn.disabled = false;
