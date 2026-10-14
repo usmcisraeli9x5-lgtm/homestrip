@@ -28,7 +28,7 @@
             --glass-bg: rgba(22, 18, 31, 0.7);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; background-image: radial-gradient(circle at 50% 0%, rgba(255, 0, 85, 0.18), transparent 65%); }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; background-image: radial-gradient(circle at 50% 0%, rgba(255, 0, 85, 0.18), transparent 65%); user-select: none; }
         
         .brand-name { font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
         .brand-name span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
@@ -77,11 +77,15 @@
         .media-container.locked img, .media-container.locked video { filter: blur(28px); transform: scale(1.15); pointer-events: none; }
         
         .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.15); }
+        .fomo-timer { position: absolute; top: 12px; left: 12px; background: rgba(255, 0, 85, 0.85); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(4px); box-shadow: 0 0 10px var(--primary-glow); }
+        
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 6, 12, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; text-align: center; }
         .price-tag { font-size: 28px; font-weight: 900; color: var(--text-main); }
         .btn-unlock { background: var(--gradient-accent); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; width: 85%; max-width: 260px; }
 
         .post-caption { padding: 16px; font-size: 14px; line-height: 1.5; color: #e2dfed; }
+        .post-footer-actions { padding: 0 16px 14px; display: flex; gap: 10px; }
+
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
         .form-control { width: 100%; padding: 14px; background: rgba(12, 10, 15, 0.9); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-main); font-size: 14px; font-weight: 600; outline: none; }
@@ -89,6 +93,7 @@
         .btn-primary { width: 100%; background: var(--gradient-accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--card-border); padding: 13px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; }
         .btn-accent { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+        .btn-tip { background: rgba(0, 240, 255, 0.15); border: 1px solid var(--accent); color: var(--accent); padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; }
 
         .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; }
         .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); }
@@ -205,15 +210,15 @@
             <div class="analytics-grid">
                 <div class="analytics-card">
                     <h4>Total Earned</h4>
-                    <p id="total-revenue">₦0</p>
+                    <p id="total-revenue">₦125,000</p>
                 </div>
                 <div class="analytics-card">
                     <h4>Net Balance</h4>
-                    <p id="net-balance">₦0</p>
+                    <p id="net-balance">₦112,500</p>
                 </div>
                 <div class="analytics-card">
                     <h4>Unlocks</h4>
-                    <p id="total-unlocks">0</p>
+                    <p id="total-unlocks">42</p>
                 </div>
             </div>
 
@@ -499,6 +504,13 @@
             }
         }
 
+        function sendTip(creatorName) {
+            const amount = prompt(`Enter tip amount for ${creatorName} (₦):`, "1000");
+            if(amount && Number(amount) >= 100) {
+                payWithPaystack(Number(amount), null);
+            }
+        }
+
         function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
@@ -533,6 +545,7 @@
                         </div>
                     </div>
                     <div class="media-container ${isUnlocked ? '' : 'locked'}">
+                        <div class="fomo-timer">⏳ 23h 59m left</div>
                         ${renderMediaHTML(post.media, isUnlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span></div>
                         ${!isUnlocked ? `
@@ -543,6 +556,9 @@
                         ` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
+                    <div class="post-footer-actions">
+                        <button class="btn-tip" onclick="sendTip('${post.name}')">💸 Send Tip to Creator</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -559,7 +575,8 @@
                 <div class="profile-card">
                     <div class="profile-avatar">${avatarImg}</div>
                     <h2>${name}</h2>
-                    <p style="color:var(--text-muted); font-size:14px;">${handle || '@' + name.toLowerCase()}</p>
+                    <p style="color:var(--text-muted); font-size:14px; margin-bottom:12px;">${handle || '@' + name.toLowerCase()}</p>
+                    <button class="btn-tip" onclick="sendTip('${name}')">💸 Send Tip</button>
                 </div>
             `;
             const container = document.getElementById('profile-posts-container');
