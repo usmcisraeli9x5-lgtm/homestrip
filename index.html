@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOME STRIP | Creator Ecosystem</title>
-    <!-- Premium Google Font -->
+    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -17,24 +17,29 @@
             --card-bg: rgba(22, 18, 31, 0.85);
             --card-border: #2c223b;
             --primary: #ff0055;
-            --primary-glow: rgba(255, 0, 85, 0.35);
+            --primary-glow: rgba(255, 0, 85, 0.45);
             --accent: #00f0ff;
-            --accent-glow: rgba(0, 240, 255, 0.35);
+            --accent-glow: rgba(0, 240, 255, 0.4);
             --text-main: #ffffff;
             --text-muted: #a49fb5;
             --gradient-accent: linear-gradient(135deg, #ff0055 0%, #7928ca 50%, #00f0ff 100%);
             --glass-bg: rgba(22, 18, 31, 0.7);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; background-image: radial-gradient(circle at 50% 0%, rgba(121, 40, 202, 0.15), transparent 60%); }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; background-image: radial-gradient(circle at 50% 0%, rgba(255, 0, 85, 0.18), transparent 65%); }
         
         /* Branded Stylized App Name */
         .brand-name { font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
         .brand-name span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
         
-        header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--glass-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 22px; cursor: pointer; }
-        .badge-18 { background: linear-gradient(135deg, #ff0055, #ff3300); color: white; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 10px var(--primary-glow); }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--glass-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
+        
+        .logo-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .brand-header-logo { height: 36px; width: 36px; filter: drop-shadow(0 0 8px var(--primary-glow)); transition: transform 0.2s; }
+        .logo-container:hover .brand-header-logo { transform: scale(1.05); }
+        
+        .logo { font-size: 22px; }
+        .badge-18 { background: linear-gradient(135deg, #ff0055, #ff3300); color: white; font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 12px var(--primary-glow); }
 
         .filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; background: rgba(12, 10, 15, 0.9); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
         .filter-chip { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
@@ -116,7 +121,19 @@
 <body>
 
     <header>
-        <div class="logo brand-name" onclick="checkAdminSecret()">HOME<span>STRIP</span></div>
+        <div class="logo-container" onclick="checkAdminSecret()">
+            <!-- Custom Glowing Neon Lips & Finger Icon -->
+            <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Lips Outline -->
+                <path d="M 15 42 C 30 18, 70 18, 85 42 C 65 52, 35 52, 15 42 Z" stroke="#ff0055" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 20 42 C 40 68, 60 68, 80 42 C 60 82, 40 82, 20 42 Z" stroke="#ff0055" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 22 42 Q 50 50 78 42" stroke="#ffffff" stroke-width="3" opacity="0.8" />
+                <!-- Shh Finger Gesture -->
+                <path d="M 50 25 L 50 90" stroke="#00f0ff" stroke-width="6" stroke-linecap="round" />
+                <path d="M 42 70 C 42 85, 58 85, 58 70" stroke="#ff0055" stroke-width="4" />
+            </svg>
+            <div class="logo brand-name">HOME<span>STRIP</span></div>
+        </div>
         <div class="badge-18">18+ VIP</div>
     </header>
 
@@ -559,7 +576,7 @@
             if(targetSec) targetSec.classList.add('active');
             if(targetBtn) targetBtn.classList.add('active');
 
-            // Persist the active studio sub-tab across reloads!
+            // Persist active studio sub-tab across reloads!
             localStorage.setItem('last_active_studio_sec', sec);
         }
 
