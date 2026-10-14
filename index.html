@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOME STRIP | Creator Ecosystem</title>
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="GW5ngo00k979WFEXCAW2nVaVAzAImCnqfFC88_vZ3a0" />
+    
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,7 +107,6 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
         .modal-body { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
         
-        /* Statutory Entry Gate Overlay */
         .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; box-shadow: 0 0 30px var(--primary-glow); }
 
@@ -132,7 +134,6 @@
 </head>
 <body>
 
-    <!-- STATUTORY 18+ ENTRY AGE GATE -->
     <div id="age-gate" class="age-gate-overlay">
         <div class="age-gate-card">
             <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" style="height:54px; width:54px; margin-bottom:12px;">
@@ -168,7 +169,6 @@
             🔗 Referred by Creator: <b id="ref-name" style="color:var(--accent);"></b>
         </div>
         
-        <!-- Search Input Bar -->
         <div class="search-container">
             <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators, handles, or drops..." oninput="handleFeedSearch()">
         </div>
@@ -554,7 +554,6 @@
         let kycCameraStream = null;
         let kycPassedSteps = [false, false, false];
 
-        // Check age gate on load
         if(localStorage.getItem('age_verified_18') === 'true') {
             document.getElementById('age-gate').style.display = 'none';
         }
