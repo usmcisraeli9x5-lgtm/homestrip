@@ -5,20 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOME STRIP | 18+ Creator Ecosystem & Video Drops</title>
     <meta name="description" content="HOME STRIP is the ultimate 18+ creator ecosystem, video drop platform, and live broadcasting network in Nigeria.">
-    <meta name="keywords" content="Home Strip, homestrip, creator platform, adult content, video drops, paystack creators">
-    <meta property="og:title" content="HOME STRIP | Creator Ecosystem">
-    <meta property="og:description" content="Unlock exclusive content from top verified creators on HOME STRIP.">
-    
-    <!-- Google Site Verification -->
     <meta name="google-site-verification" content="GW5ngo00k979WFEXCAW2nVaVAzAImCnqfFC88_vZ3a0" />
     
-    <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     
     <script src="https://js.paystack.co/v1/inline.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #08060c;
@@ -42,26 +36,23 @@
         header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--glass-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 100; }
         
         .logo-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .brand-header-logo { height: 36px; width: 36px; border-radius: 8px; filter: drop-shadow(0 0 8px var(--primary-glow)); transition: transform 0.2s; object-fit: contain; }
-        .logo-container:hover .brand-header-logo { transform: scale(1.05); }
-        
+        .brand-header-logo { height: 36px; width: 36px; border-radius: 8px; filter: drop-shadow(0 0 8px var(--primary-glow)); object-fit: contain; }
         .logo { font-size: 22px; }
         .badge-18 { background: linear-gradient(135deg, #ff0055, #ff3300); color: white; font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 0 12px var(--primary-glow); }
 
         .search-container { padding: 12px 20px 0; background: rgba(12, 10, 15, 0.9); }
         .search-input { width: 100%; padding: 10px 16px; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 20px; color: var(--text-main); font-size: 13px; font-weight: 600; outline: none; }
-        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
         .filter-bar { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; background: rgba(12, 10, 15, 0.9); border-bottom: 1px solid var(--card-border); white-space: nowrap; }
-        .filter-chip { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+        .filter-chip { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .filter-chip.active { background: var(--gradient-accent); color: white; border-color: transparent; box-shadow: 0 0 12px var(--primary-glow); }
 
         .sub-nav-bar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 18px; white-space: nowrap; }
-        .sub-nav-btn { background: var(--glass-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+        .sub-nav-btn { background: var(--glass-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 10px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; }
         .sub-nav-btn.active { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--glass-bg); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
-        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s; }
+        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-item.active { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
 
         .view { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
@@ -69,46 +60,42 @@
         .studio-section { display: none; }
         .studio-section.active { display: block; }
 
-        .post-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 22px; position: relative; backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .post-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 22px; position: relative; }
         .post-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
         .post-header-left { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; overflow: hidden; object-fit: cover; border: 2px solid var(--accent); }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gradient-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; border: 2px solid var(--accent); }
         .creator-info h4 { font-size: 15px; font-weight: 800; }
         .creator-info span { font-size: 12px; color: var(--text-muted); }
 
         .post-actions-top { display: flex; gap: 6px; align-items: center; }
-        .action-icon-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .action-icon-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; }
         .action-icon-btn.saved { color: var(--primary); border-color: var(--primary); }
 
         .media-container { position: relative; width: 100%; height: 340px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-container img, .media-container video { width: 100%; height: 100%; object-fit: cover; }
         .media-container.locked img, .media-container.locked video { filter: blur(28px); transform: scale(1.15); pointer-events: none; }
         
-        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; pointer-events: none; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); }
-
+        .watermark { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.75); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.15); }
         .paywall-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 6, 12, 0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; text-align: center; }
-        .price-tag { font-size: 28px; font-weight: 900; color: var(--text-main); text-shadow: 0 0 15px rgba(255,255,255,0.3); }
-        .btn-unlock { background: var(--gradient-accent); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; width: 85%; max-width: 260px; box-shadow: 0 0 20px var(--primary-glow); }
+        .price-tag { font-size: 28px; font-weight: 900; color: var(--text-main); }
+        .btn-unlock { background: var(--gradient-accent); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; width: 85%; max-width: 260px; }
 
         .post-caption { padding: 16px; font-size: 14px; line-height: 1.5; color: #e2dfed; }
-
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
         .form-control { width: 100%; padding: 14px; background: rgba(12, 10, 15, 0.9); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-main); font-size: 14px; font-weight: 600; outline: none; }
 
-        .btn-primary { width: 100%; background: var(--gradient-accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 10px; box-shadow: 0 0 15px var(--primary-glow); }
+        .btn-primary { width: 100%; background: var(--gradient-accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; background: transparent; color: var(--text-muted); border: 1px solid var(--card-border); padding: 13px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; }
-        .btn-accent { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 0 12px var(--accent-glow); }
+        .btn-accent { background: var(--accent); color: #000; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; }
 
-        .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; backdrop-filter: blur(10px); }
-        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 22px; }
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: var(--gradient-accent); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; overflow: hidden; border: 3px solid var(--accent); }
 
         .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
         .analytics-card { background: var(--glass-bg); border: 1px solid var(--card-border); padding: 16px 10px; border-radius: 12px; text-align: center; }
         .analytics-card h4 { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
-        .analytics-card p { font-size: 18px; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+        .analytics-card p { font-size: 18px; font-weight: 900; color: var(--accent); }
 
         .chat-box { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); border-radius: 12px; height: 260px; overflow-y: auto; padding: 14px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
         .chat-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 82%; font-weight: 600; }
@@ -124,7 +111,7 @@
         .modal-body { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; }
 
         .age-gate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #08060c; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; box-shadow: 0 0 30px var(--primary-glow); }
+        .age-gate-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px 24px; max-width: 400px; }
         
         .kyc-step { background: rgba(8, 6, 12, 0.9); border: 1px solid var(--card-border); padding: 14px; border-radius: 10px; margin-bottom: 10px; text-align: left; font-size: 13px; font-weight: 700; }
         .kyc-step.passed { border-color: var(--accent); color: var(--accent); }
@@ -132,7 +119,6 @@
 </head>
 <body>
 
-    <!-- AGE GATE -->
     <div id="age-gate" class="age-gate-overlay">
         <div class="age-gate-card">
             <h2 class="brand-name" style="font-size:24px; margin-bottom:8px;">HOME<span>STRIP</span></h2>
@@ -144,7 +130,6 @@
         </div>
     </div>
 
-    <!-- HEADER WITH RESTORED BRAND LOGO -->
     <header>
         <div class="logo-container" onclick="switchTab('feed')">
             <img src="logo.png" alt="Home Strip Logo" class="brand-header-logo" onerror="this.style.display='none'">
@@ -153,7 +138,6 @@
         <div class="badge-18">18+ VIP</div>
     </header>
 
-    <!-- FEED VIEW -->
     <div id="feed-view" class="view active">
         <div class="search-container">
             <input type="text" id="feed-search-input" class="search-input" placeholder="🔍 Search creators, handles, or drops..." oninput="handleFeedSearch()">
@@ -170,27 +154,24 @@
         </div>
     </div>
 
-    <!-- UNLOCKED LIBRARY VIEW -->
     <div id="unlocked-view" class="view">
-        <h2 style="margin-bottom: 15px;">My Subscriptions & Library 👑</h2>
+        <h2 style="margin-bottom: 15px;">My Library & Subscriptions 👑</h2>
         <div id="unlocked-posts-container" style="margin-top: 15px;">
-            <p style="text-align: center; color: var(--text-muted); padding: 20px;">Checking unlocked content...</p>
+            <p style="text-align: center; color: var(--text-muted); padding: 20px;">No unlocked content yet.</p>
         </div>
     </div>
 
-    <!-- MESSAGES VIEW -->
     <div id="messages-view" class="view">
         <h2 style="margin-bottom: 15px;">Direct Messages 💬</h2>
         <div class="chat-box" id="global-chat-box">
-            <div class="chat-bubble fan">Welcome to HOME STRIP! Select a creator profile to open a 1-on-1 VIP chatroom.</div>
+            <div class="chat-bubble fan">Welcome to HOME STRIP! Select a creator profile to start chatting.</div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message or request...">
+            <input type="text" id="chat-input-msg" class="form-control" placeholder="Type a message...">
             <button class="btn-accent" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">Send</button>
         </div>
     </div>
 
-    <!-- PROFILE VIEW -->
     <div id="profile-view" class="view">
         <button class="btn-secondary" style="width:auto; padding:8px 16px; margin-bottom:15px;" onclick="switchTab('feed')">← Back to Feed</button>
         <div id="profile-header-container"></div>
@@ -198,7 +179,6 @@
         <div id="profile-posts-container" style="margin-top: 15px;"></div>
     </div>
 
-    <!-- STUDIO VIEW -->
     <div id="studio-view" class="view">
         <div id="auth-section">
             <h2 style="margin-bottom: 20px;">Creator & Fan Access</h2>
@@ -230,7 +210,7 @@
                 </div>
                 <div class="analytics-card">
                     <h4>Net Balance</h4>
-                    <p id="net-balance" style="color:var(--primary);">₦0</p>
+                    <p id="net-balance">₦0</p>
                 </div>
                 <div class="analytics-card">
                     <h4>Unlocks</h4>
@@ -238,19 +218,21 @@
                 </div>
             </div>
 
-            <!-- Studio Sub-Nav -->
             <div class="sub-nav-bar">
-                <button class="sub-nav-btn active" id="btn-sec-upload" onclick="switchStudioSection('upload')">📤 Upload Media</button>
-                <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live Stream</button>
-                <button class="sub-nav-btn" id="btn-sec-profile" onclick="switchStudioSection('profile')">👤 Profile Setup</button>
-                <button class="sub-nav-btn" id="btn-sec-kyc" onclick="switchStudioSection('kyc')">🔐 KYC Verification</button>
-                <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Bank Payouts</button>
+                <button class="sub-nav-btn active" id="btn-sec-upload" onclick="switchStudioSection('upload')">📤 Upload</button>
+                <button class="sub-nav-btn" id="btn-sec-live" onclick="switchStudioSection('live')">🔴 Live</button>
+                <button class="sub-nav-btn" id="btn-sec-profile" onclick="switchStudioSection('profile')">👤 Profile</button>
+                <button class="sub-nav-btn" id="btn-sec-kyc" onclick="switchStudioSection('kyc')">🔐 KYC</button>
+                <button class="sub-nav-btn" id="btn-sec-payout" onclick="switchStudioSection('payout')">💼 Payouts</button>
             </div>
 
-            <!-- Studio Upload Section -->
             <div id="studio-sec-upload" class="studio-section active">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Publish New Post & Drop 📤</h3>
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Publish New Drop 📤</h3>
+                    <div class="form-group">
+                        <label>Creator Name</label>
+                        <input type="text" id="creator-name" class="form-control" value="Lord Enzo">
+                    </div>
                     <div class="form-group">
                         <label>Category Tag</label>
                         <select id="post-category" class="form-control">
@@ -265,7 +247,7 @@
                     </div>
                     <div class="form-group">
                         <label>Unlock Price (₦)</label>
-                        <input type="number" id="post-price" class="form-control" placeholder="3000">
+                        <input type="number" id="post-price" class="form-control" value="3000">
                     </div>
                     <div class="form-group">
                         <label>Upload Media File</label>
@@ -276,101 +258,61 @@
                 </div>
             </div>
 
-            <!-- Studio Live Section -->
             <div id="studio-sec-live" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Broadcast Studio</h3>
-                    <div class="form-group">
-                        <label>RTMP Server URL</label>
-                        <input type="text" class="form-control" value="rtmp://live.homestrip.ng/app" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Stream Key</label>
-                        <input type="text" id="rtmp-key" class="form-control" value="hs_live_key_9982x7a" readonly>
-                    </div>
-                    <button class="btn-primary" onclick="alert('New RTMP key generated!')">Generate Stream Key 🔑</button>
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">📡 Live Stream Studio</h3>
+                    <div class="form-group"><label>RTMP URL</label><input type="text" class="form-control" value="rtmp://live.homestrip.ng/app" readonly></div>
+                    <div class="form-group"><label>Stream Key</label><input type="text" class="form-control" value="hs_live_key_9982x7a" readonly></div>
+                    <button class="btn-primary" onclick="alert('Stream key active!')">Generate Stream Key 🔑</button>
                 </div>
             </div>
 
-            <!-- Studio Profile Section -->
             <div id="studio-sec-profile" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Creator Profile Setup 👤</h3>
-                    <div class="form-group">
-                        <label>Display Name</label>
-                        <input type="text" id="creator-name" class="form-control" value="Lord Enzo">
-                    </div>
-                    <button class="btn-primary" onclick="alert('Profile updated!')">Save Profile Settings</button>
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--accent);">Profile Setup</h3>
+                    <div class="form-group"><label>Display Name</label><input type="text" class="form-control" value="Lord Enzo"></div>
+                    <button class="btn-primary" onclick="alert('Profile saved!')">Save Profile</button>
                 </div>
             </div>
 
-            <!-- Studio KYC Section -->
             <div id="studio-sec-kyc" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Verification (18+)</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Verify account identity.</p>
-                    <button class="btn-secondary" onclick="alert('Camera active')">Start Liveness Camera 🎥</button>
+                    <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent);">🔐 Verification</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Identity verification active.</p>
+                    <button class="btn-secondary" onclick="alert('Camera test passed')">Start Liveness Camera 🎥</button>
                 </div>
             </div>
 
-            <!-- Studio Payout Section -->
             <div id="studio-sec-payout" class="studio-section">
                 <div style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 18px; border-radius: 16px;">
-                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Verified Bank Payout Settings</h3>
-                    <div class="form-group">
-                        <label>Account Number</label>
-                        <input type="number" class="form-control" placeholder="0123456789">
-                    </div>
-                    <button class="btn-secondary" onclick="alert('Bank account saved!')">Save Bank Account</button>
+                    <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent);">Bank Payout Settings</h3>
+                    <div class="form-group"><label>Account Number</label><input type="number" class="form-control" placeholder="0123456789"></div>
+                    <button class="btn-secondary" onclick="alert('Bank saved!')">Save Bank Account</button>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- PUBLIC SETTINGS VIEW (SECURE PUBLIC PAGE) -->
     <div id="settings-view" class="view">
         <h2 style="margin-bottom: 20px;">Settings & Information</h2>
-        
         <div class="settings-menu">
-            <div class="settings-item" onclick="openPolicyModal('terms')">
-                <span>Terms & Conditions</span>
-                <span>›</span>
-            </div>
-            <div class="settings-item" onclick="openPolicyModal('privacy')">
-                <span>Privacy Policy</span>
-                <span>›</span>
-            </div>
-            <div class="settings-item" onclick="openPolicyModal('support')">
-                <span>Help & Support</span>
-                <span>›</span>
-            </div>
+            <div class="settings-item" onclick="openPolicyModal('terms')"><span>Terms & Conditions</span><span>›</span></div>
+            <div class="settings-item" onclick="openPolicyModal('privacy')"><span>Privacy Policy</span><span>›</span></div>
+            <div class="settings-item" onclick="openPolicyModal('support')"><span>Help & Support</span><span>›</span></div>
         </div>
     </div>
 
-    <!-- SECURE ADMIN CONFIGURATION MODAL (LOCKED TO AUTHORIZED STUDIO USERS) -->
     <div id="admin-config-modal" class="modal-overlay">
         <div class="modal-body" style="text-align: left;">
             <h3 style="margin-bottom: 12px; color: var(--accent);">Protected Developer Keys ⚙️</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Authorized administrative access only.</p>
-            <div class="form-group">
-                <label>Supabase URL</label>
-                <input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co">
-            </div>
-            <div class="form-group">
-                <label>Supabase Publishable / Anon Key</label>
-                <input type="text" id="config-key" class="form-control" value="sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr">
-            </div>
-            <div class="form-group">
-                <label>Paystack Public Key</label>
-                <input type="text" id="config-paystack" class="form-control" placeholder="pk_live_... or pk_test_...">
-            </div>
+            <div class="form-group"><label>Supabase URL</label><input type="text" id="config-url" class="form-control" value="https://vypsemwlbomslczvnxix.supabase.co"></div>
+            <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="config-key" class="form-control" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA0NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5"></div>
+            <div class="form-group"><label>Paystack Public Key</label><input type="text" id="config-paystack" class="form-control" value="pk_live_e28e80eb3c55079272d529568d6946bf6"></div>
             <button class="btn-primary" onclick="saveDeveloperConfig()">Save & Reconnect</button>
             <button class="btn-secondary" onclick="closeModal('admin-config-modal')">Close</button>
         </div>
     </div>
 
-    <!-- Policy Modal -->
     <div id="policy-modal" class="modal-overlay">
         <div class="modal-body" style="text-align: left;">
             <h3 id="modal-title" style="margin-bottom: 12px; color: var(--accent);">Policy</h3>
@@ -379,7 +321,6 @@
         </div>
     </div>
 
-    <!-- NAV BAR -->
     <nav class="nav-bar">
         <button class="nav-item active" id="nav-feed" onclick="switchTab('feed')"><span>🔥</span> Feed</button>
         <button class="nav-item" id="nav-unlocked" onclick="switchTab('unlocked')"><span>👑</span> Library</button>
@@ -390,15 +331,13 @@
 
     <script>
         let SUPABASE_URL = localStorage.getItem('custom_supabase_url') || "https://vypsemwlbomslczvnxix.supabase.co";
-        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "sb_publishable_12qnjYa4-Rs2CBffSutn4A_OBtzsr";
+        let SUPABASE_PUB_KEY = localStorage.getItem('custom_supabase_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cHNlbXdsYm9tc2xjenZueGl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwMjc0NzYsImV4cCI6MjA0NDYwMzQ3Nn0.V2zQ6Kq1zVqY1qZq2q3q4q5q6q7q8q9q0q1q2q3q4q5";
         let PAYSTACK_PUB_KEY = localStorage.getItem('custom_paystack_key') || "pk_live_e28e80eb3c55079272d529568d6946bf6";
 
         let supabaseClient = null;
         try {
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUB_KEY);
-        } catch(e) {
-            console.error("Supabase init error:", e);
-        }
+        } catch(e) { console.error("Supabase init error:", e); }
 
         let currentCategoryFilter = 'All';
         let searchQuery = '';
@@ -416,23 +355,18 @@
             document.getElementById('age-gate').style.display = 'none';
         }
 
-        function rejectAgeGate() {
-            window.location.href = "https://www.google.com";
-        }
-
-        function openAdminConfigModal() {
-            document.getElementById('admin-config-modal').style.display = 'flex';
-        }
+        function rejectAgeGate() { window.location.href = "https://www.google.com"; }
+        function openAdminConfigModal() { document.getElementById('admin-config-modal').style.display = 'flex'; }
 
         function saveDeveloperConfig() {
             const url = document.getElementById('config-url').value;
             const key = document.getElementById('config-key').value;
             const paystackKey = document.getElementById('config-paystack').value;
-            if(!url || !key) return alert('Enter Supabase URL and Key.');
+            if(!url || !key) return alert('Enter URL and Key.');
             localStorage.setItem('custom_supabase_url', url);
             localStorage.setItem('custom_supabase_key', key);
             if(paystackKey) localStorage.setItem('custom_paystack_key', paystackKey);
-            alert('Developer Keys Updated Safely!');
+            alert('Keys Updated Successfully!');
             location.reload();
         }
 
@@ -447,9 +381,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(tab + '-view').classList.add('active');
             document.getElementById('nav-' + tab).classList.add('active');
-            
             localStorage.setItem('last_active_tab', tab);
-
             if(tab === 'feed') renderFeed();
             if(tab === 'unlocked') renderUnlockedLibrary();
             if(tab === 'messages') renderChatInbox();
@@ -541,7 +473,7 @@
 
         async function renderFeed() {
             const container = document.getElementById('posts-container');
-            if(!supabaseClient) { container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--primary);">Database initialization error.</p>`; return; }
+            if(!supabaseClient) { container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--primary);">Database error.</p>`; return; }
             const { data: posts, error } = await supabaseClient.from('posts').select('*').order('id', { ascending: false });
             if (error || !posts) { container.innerHTML = `<p style="text-align:center; padding:20px;">No posts available yet.</p>`; return; }
             cachedPosts = posts;
@@ -569,25 +501,16 @@
         function displayPosts(posts) {
             const container = document.getElementById('posts-container');
             container.innerHTML = '';
-
             let filtered = posts;
             if(currentCategoryFilter === 'Saved') {
                 filtered = posts.filter(p => savedPostIds.includes(p.id));
             } else if(currentCategoryFilter !== 'All') {
                 filtered = posts.filter(p => p.category === currentCategoryFilter);
             }
-
             if(searchQuery) {
-                filtered = filtered.filter(p => 
-                    (p.name && p.name.toLowerCase().includes(searchQuery)) ||
-                    (p.caption && p.caption.toLowerCase().includes(searchQuery))
-                );
+                filtered = filtered.filter(p => (p.name && p.name.toLowerCase().includes(searchQuery)) || (p.caption && p.caption.toLowerCase().includes(searchQuery)));
             }
-
-            if(filtered.length === 0) { 
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops found.</p>`; 
-                return; 
-            }
+            if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No drops found.</p>`; return; }
 
             filtered.forEach(post => {
                 const isUnlocked = unlockedPostIds.includes(post.id) || post.unlocked;
@@ -614,7 +537,7 @@
                         ${!isUnlocked ? `
                             <div class="paywall-overlay">
                                 <div class="price-tag">₦${Number(post.price).toLocaleString()}</div>
-                                <button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock Content</button>
+                                <button class="btn-unlock" onclick="payWithPaystack(${post.price}, ${post.id})">Unlock Content</button>
                             </div>
                         ` : ''}
                     </div>
@@ -628,7 +551,6 @@
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('profile-view').classList.add('active');
-
             const { data: posts } = await supabaseClient.from('posts').select('*').eq('name', name);
             document.getElementById('profile-header-container').innerHTML = `
                 <div class="profile-card">
@@ -648,7 +570,7 @@
                     <div class="media-container ${unlocked ? '' : 'locked'}">
                         ${renderMediaHTML(post.media, unlocked)}
                         <div class="watermark brand-name">HOME<span>STRIP</span></div>
-                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price},${post.id})">Unlock</button></div>` : ''}
+                        ${!unlocked ? `<div class="paywall-overlay"><div class="price-tag">₦${Number(post.price).toLocaleString()}</div><button class="btn-unlock" onclick="payWithPaystack(${post.price}, ${post.id})">Unlock</button></div>` : ''}
                     </div>
                     <div class="post-caption">${post.caption}</div>
                 `;
@@ -658,14 +580,10 @@
 
         async function renderUnlockedLibrary() {
             const container = document.getElementById('unlocked-posts-container');
-            if(unlockedPostIds.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>`;
-                return;
-            }
+            if(unlockedPostIds.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:20px;">No unlocked content yet.</p>'; return; }
             const { data: posts } = await supabaseClient.from('posts').select('*').in('id', unlockedPostIds);
             container.innerHTML = '';
             if(!posts || posts.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No posts found.</p>`; return; }
-
             posts.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
@@ -682,14 +600,9 @@
 
         function renderChatInbox() {
             const box = document.getElementById('global-chat-box');
-            if(chatMessages.length === 0) {
-                box.innerHTML = `<div class="chat-bubble fan">Start a conversation with verified creators!</div>`;
-                return;
-            }
+            if(chatMessages.length === 0) { box.innerHTML = `<div class="chat-bubble fan">Start a conversation with verified creators!</div>`; return; }
             box.innerHTML = '';
-            chatMessages.forEach(m => {
-                box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`;
-            });
+            chatMessages.forEach(m => { box.innerHTML += `<div class="chat-bubble ${m.sender}">${m.text}</div>`; });
             box.scrollTop = box.scrollHeight;
         }
 
@@ -767,11 +680,6 @@
 
         function payWithPaystack(price, postId) {
             let activePaystackKey = localStorage.getItem('custom_paystack_key') || PAYSTACK_PUB_KEY;
-            
-            if(!activePaystackKey || activePaystackKey.trim() === '') {
-                return alert('Paystack Key required.');
-            }
-
             try {
                 let handler = PaystackPop.setup({
                     key: activePaystackKey,
@@ -790,7 +698,7 @@
                 });
                 handler.openIframe();
             } catch(err) {
-                alert('Paystack initialization error: ' + err.message);
+                alert('Paystack error: ' + err.message);
             }
         }
 
